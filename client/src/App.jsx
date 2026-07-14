@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import * as I from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { ListingPage, SettingsPage, BackupPage, ViewSite, listingNames } from './AdminPages';
+import { ListingPage, UsersPage, ClientsPage, ProjectsPage, ServicesPage as AdminServicesPage, ProductsAdminPage, BlogsAdminPage, TestimonialsPage, ContactMessagesPage, PagesAdminPage, SettingsPage, BackupPage, ViewSite, listingNames } from './AdminPages';
+import { MenusPage, MediaLibraryPage, SlidersPage } from './CmsPages';
+import { RolesPermissionsPage, SettingsAdminPage, ActivityLogsPage, SystemBackupAdminPage } from './SystemAdminPages';
+import PublicHome from './PublicHome';
+import AboutPage from './AboutPage';
+import ServicesPage from './ServicesPage';
+import PortfolioPage from './PortfolioPage';
+import ProductsPage from './ProductsPage';
+import PricingPage from './PricingPage';
+import BlogPage from './BlogPage';
+import SingleBlogPage from './SingleBlogPage';
+import ContactPage from './ContactPage';
 
 const navGroups = [
   { label: '', items: [['Dashboard', I.LayoutDashboard]] },
@@ -40,7 +51,7 @@ const services = [{name:'Web Development',value:45,color:'#0874e8'}, {name:'Mobi
 function Logo(){return <div className="logo"><div className="mark"><i/><b/></div><div><strong>MIKENIUM</strong><small>Building Smarter Software</small></div></div>}
 function Sidebar({open,setOpen,active,onSelect}) { const go=n=>{onSelect(n);setOpen(false)};return <aside className={open?'sidebar open':'sidebar'}>
   <Logo/><nav>{navGroups.map((g,gi)=><section key={gi}>{g.label&&<label>{g.label}</label>}{g.items.map(([n,Icon])=><button onClick={()=>go(n)} className={n===active?'active':''} key={n}><Icon size={18}/><span>{n}</span></button>)}</section>)}</nav>
-  <button className={active==='View Site'?'visit active':'visit'} onClick={()=>go('View Site')}><I.Globe2 size={18}/> View Site <I.ExternalLink size={16}/></button><footer>© 2024 Mikenium<br/><span>All Rights Reserved.</span></footer>
+  <button className="visit" onClick={()=>{window.location.href='/'}}><I.Globe2 size={18}/> View Site <I.ExternalLink size={16}/></button><footer>© 2024 Mikenium<br/><span>All Rights Reserved.</span></footer>
   <button className="mobile-close" onClick={()=>setOpen(false)}><I.X/></button>
   </aside> }
 function Header({toggle,title}) { const [dark,setDark]=useState(false);return <header><button className="icon-button" onClick={toggle}><I.Menu/></button><b>{title}</b><div className="header-actions"><button className="header-icon" onClick={()=>setDark(!dark)} title="Toggle theme">{dark?<I.Sun/>:<I.Moon/>}</button><span className="bell"><I.Bell/><i>5</i></span><div className="avatar">SA</div><div className="admin"><b>Super Admin</b><small>superadmin@mikenium.com</small></div><I.ChevronDown size={16}/></div></header> }
@@ -52,5 +63,6 @@ function Services(){return <div className="card panel services"><h3>Top Services
 function Users(){return <div className="card panel"><h3>Recent Users</h3><div className="rows">{people.map(([ini,n,e,r,t],idx)=><div className="person" key={n}><span className={'photo p'+idx}>{ini}</span><div><b>{n}</b><small>{e}</small></div><em className={r.toLowerCase()}>{r}</em><time>{t}</time></div>)}</div><a>View All Users <I.ArrowRight/></a></div>}
 function Status(){return <div className="card status"><div><span className="status-icon"><I.ShieldCheck/></span><p><small>System Status</small><b className="ok">All Systems Operational</b></p></div><div><span className="status-icon"><I.Server/></span><p><small>Server Uptime</small><b>99.9%</b><em>Last 30 days</em></p></div><div><span className="status-icon"><I.Database/></span><p><small>Total Storage</small><b>256.8 GB / 1 TB</b><span className="progress"><i/></span></p></div><div><span className="status-icon green"><I.HardDriveDownload/></span><p><small>Last Backup</small><b>May 21, 2024 02:30 AM</b><a>(View Logs)</a></p></div></div>}
 function Dashboard(){return <div className="content"><div className="welcome"><div><h1>Welcome back, Super Admin! 👋</h1><p>Here's what's happening with your platform today.</p></div><button><I.CalendarDays/> May 15, 2024 - May 21, 2024 <I.ChevronDown/></button></div><div className="stats">{stats.map(s=><StatCard key={s[0]} s={s}/>)}</div><div className="middle"><PlatformChart/><Summary/></div><div className="bottom"><Activities/><Services/><Users/></div><Status/></div>}
-function CurrentPage({active}){if(active==='Dashboard')return <Dashboard/>;if(active==='Settings')return <SettingsPage/>;if(active==='System Backup')return <BackupPage/>;if(active==='View Site')return <ViewSite/>;if(listingNames.includes(active))return <ListingPage name={active}/>;return <Dashboard/>}
-export default function App(){const [open,setOpen]=useState(false);const [active,setActive]=useState('Dashboard');return <div className="app"><Sidebar open={open} setOpen={setOpen} active={active} onSelect={setActive}/>{open&&<div className="scrim" onClick={()=>setOpen(false)}/>}<main><Header title={active} toggle={()=>setOpen(!open)}/><CurrentPage active={active}/></main></div>}
+function CurrentPage({active}){if(active==='Dashboard')return <Dashboard/>;if(active==='Users')return <UsersPage/>;if(active==='Clients')return <ClientsPage/>;if(active==='Projects')return <ProjectsPage/>;if(active==='Services')return <AdminServicesPage/>;if(active==='Products')return <ProductsAdminPage/>;if(active==='Blogs')return <BlogsAdminPage/>;if(active==='Testimonials')return <TestimonialsPage/>;if(active==='Contact Messages')return <ContactMessagesPage/>;if(active==='Pages')return <PagesAdminPage/>;if(active==='Menus')return <MenusPage/>;if(active==='Media Library')return <MediaLibraryPage/>;if(active==='Sliders')return <SlidersPage/>;if(active==='Roles & Permissions')return <RolesPermissionsPage/>;if(active==='Settings')return <SettingsAdminPage/>;if(active==='Activity Logs')return <ActivityLogsPage/>;if(active==='System Backup')return <SystemBackupAdminPage/>;if(active==='View Site')return <ViewSite/>;if(listingNames.includes(active))return <ListingPage name={active}/>;return <Dashboard/>}
+function AdminApp(){const [open,setOpen]=useState(false);const [active,setActive]=useState('Dashboard');return <div className="app"><Sidebar open={open} setOpen={setOpen} active={active} onSelect={setActive}/>{open&&<div className="scrim" onClick={()=>setOpen(false)}/>}<main><Header title={active} toggle={()=>setOpen(!open)}/><CurrentPage active={active}/></main></div>}
+export default function App(){const path=window.location.pathname;return path.startsWith('/admin')?<AdminApp/>:path.startsWith('/blog/')?<SingleBlogPage/>:path==='/about'||path==='/about/'?<AboutPage/>:path==='/services'||path==='/services/'?<ServicesPage/>:path==='/portfolio'||path==='/portfolio/'?<PortfolioPage/>:path==='/products'||path==='/products/'?<ProductsPage/>:path==='/pricing'||path==='/pricing/'?<PricingPage/>:path==='/blog'||path==='/blog/'?<BlogPage/>:path==='/contact'||path==='/contact/'?<ContactPage/>:<PublicHome/>}

@@ -12,7 +12,7 @@ PERN super-admin dashboard matching the supplied reference, with a responsive Re
    `npm run admin:create --prefix server -- superadmin@mikenium.com "a-strong-unique-password" "Super Admin"`
 6. Start both applications: `npm run dev`
 
-Client: http://localhost:5173 · API: http://localhost:5000
+Public website: http://localhost:5173 · Admin dashboard: http://localhost:5173/admin · API: http://localhost:5000
 
 ## Super-admin security model
 
