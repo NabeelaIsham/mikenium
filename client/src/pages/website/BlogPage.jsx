@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import * as I from 'lucide-react';
-import './blog-page.css';
+import '../../styles/blog-page.css';
 
 const categories=['All','Engineering','AI & Data','Design','Cloud','Business'];
 const posts=[

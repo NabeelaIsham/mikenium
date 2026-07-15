@@ -1,0 +1,158 @@
+/* Complete dark palette for every super-admin page. */
+.app.dark-theme{
+  --admin-bg:#0b1220;
+  --admin-surface:#111b2c;
+  --admin-surface-2:#172338;
+  --admin-surface-3:#1d2a40;
+  --admin-border:#2b394f;
+  --admin-text:#e7edf7;
+  --admin-muted:#9cabc0;
+  background:var(--admin-bg);
+  color:var(--admin-text);
+}
+
+.app.dark-theme :where(main,.content,.admin-page,.users-page){
+  background-color:var(--admin-bg);
+  color:var(--admin-text);
+}
+
+.app.dark-theme :where(
+  .card,.data-card,.users-table-card,.menu-list,.media-shell,.slider-list,
+  .roles-list,.permission-matrix,.role-editor,.settings-nav,.settings-general,
+  .settings-side section,.logs-list,.logs-side section,.backup-overview>section,
+  .backup-history,.contact-inbox,.message-detail,.product-list-card,
+  .product-filters,.quick-actions,.modal
+){
+  background-color:var(--admin-surface);
+  border-color:var(--admin-border);
+  color:var(--admin-text);
+  box-shadow:none;
+}
+
+.app.dark-theme :where(
+  header,.cms-list-toolbar,.media-toolbar,.media-footer,.slider-search,
+  .system-toolbar,.logs-toolbar,.backup-history-head,.users-toolbar,
+  .contact-toolbar,.product-toolbar,.section-head,.message-detail-head,
+  .reply-tabs,.reply-editor>div,.browser
+){
+  background-color:var(--admin-surface);
+  border-color:var(--admin-border);
+  color:var(--admin-text);
+}
+
+.app.dark-theme :where(
+  input:not([type=checkbox]),select,textarea,.search,.users-search,.date-input,
+  .log-date,.welcome button,.card-title button,.page-toolbar button,.filter,
+  .users-toolbar button,.contact-toolbar button,.product-toolbar>button,
+  .view-switch button,.filter-actions button,.quick-actions button,
+  .cms-list-toolbar button,.media-toolbar>button,.media-view button,
+  .folder-panel>div:first-child button,.media-footer button,.slider-search>button,
+  .system-toolbar button,.system-form-actions button,.settings-nav button,
+  .logo-card>button,.favicon-card button,.reset-card button,.settings-help button,
+  .logs-toolbar button,.quick-export button,.backup-schedule>button,
+  .backup-storage>button,.backup-history-head>button,.table-footer button,
+  .users-footer button,.user-actions button,.message-detail-head button,
+  .modal-actions button,.menu-structure>div>button,.cms-form-actions button,
+  .pages-footer select
+){
+  background-color:var(--admin-surface-2);
+  border-color:#3a4961;
+  color:#dce6f5;
+}
+
+.app.dark-theme :where(input,select,textarea)::placeholder{color:#7688a3}
+.app.dark-theme :where(.primary,.save-settings,.create-button,.cms-form-actions button:last-child,.system-form-actions button:last-child,.settings-help button:last-child,.media-view button.active,.media-footer button.active,.users-footer button.active,.table-footer button.current){background:#0874e8;color:#fff;border-color:#0874e8}
+
+.app.dark-theme :where(table,thead,tbody,tr,td){background-color:transparent}
+.app.dark-theme :where(th,.users-table th){background-color:#162136;color:#aebbd0;border-color:var(--admin-border)}
+.app.dark-theme :where(td,.permission-matrix th,.permission-matrix td){color:#c9d3e2;border-color:#26354b}
+.app.dark-theme .roles-table tr.selected td,
+.app.dark-theme .logs-table tr.selected td,
+.app.dark-theme .contact-table tr.selected td{
+  background-color:#1a2b45;
+  color:#e7edf7;
+}
+.app.dark-theme :where(.activity,.person,.summary-row,.backup-schedule>div,.backup-storage li,.setting-rows label,.menu-structure,.menu-structure>div,.storage,.folder-panel,.media-footer,.cms-result,.users-footer,.table-footer){border-color:var(--admin-border)}
+
+.app.dark-theme :where(.media-content article,.product-grid article,.previous-conversation>div,.message-body,.reply-editor,.storage){background-color:var(--admin-surface-2);border-color:var(--admin-border);color:#cbd5e4}
+.app.dark-theme .media-visual{background-color:#1b2739}
+.app.dark-theme .product-thumb:not(.dark){background:linear-gradient(145deg,#27364b,#172235);color:#9fc7ff}
+.app.dark-theme :where(.status-icon,.page-heading>div:first-child>span,.user-stat-icon){background-color:var(--admin-surface-3)}
+.app.dark-theme :where(.users-table input[type=checkbox],.permission-picker input[type=checkbox],.backup-check input[type=checkbox]){background-color:#0e1828;border-color:#52627a}
+.app.dark-theme :where(.input-icon svg,.favicon-card span){background-color:var(--admin-surface-2);border-color:#3a4961;color:#b8c7da}
+.app.dark-theme .folder-panel>button{background-color:transparent;color:#bdc9d9}
+.app.dark-theme .folder-panel>button.active{background-color:#1b3355;color:#64a9ff}
+.app.dark-theme .quick-actions button{border-color:var(--admin-border)}
+.app.dark-theme .storage-chart:after{background-color:var(--admin-surface)}
+.app.dark-theme .backup-storage>div.storage-chart{background:conic-gradient(#4d83ff 0 28%,#26344a 28%)}
+.app.dark-theme .browser span{background-color:#0d1626;color:var(--admin-muted)}
+
+.app.dark-theme :where(
+  .welcome p,.page-heading p,.breadcrumbs,.admin small,.card-title .legend,
+  .activity small,.person small,.activity time,.person time,.service-list small,
+  .cms-name small,.cms-result,.cms-tip,.media-content>h3,.media-content footer small,
+  .slider-name small,.settings-general p,.settings-side p,.setting-rows small,
+  .settings-footer,.log-user small,.log-details p,.quick-export p,
+  .backup-overview>section>p,.backup-history p,.backup-check small,
+  .backup-name small,.backup-user small,.product-identity small,.blog-identity small,
+  .testimonial-client small,.message-sender small,.message-subject small,
+  .message-person small,.previous-conversation small,.page-identity small
+){color:var(--admin-muted)!important}
+
+.app.dark-theme :where(
+  .users-table td,.user-email,.users-crumb,.users-crumb span,
+  .client-identity b,.client-contact b,.project-name b,.service-identity b,
+  .product-stat small,.product-stat p,.testimonial-copy,.message-profile dd,
+  .previous-conversation p>span,.reply-tabs button,.reply-actions button,
+  .reply-editor textarea,.product-filters label,.product-grid>article>small,
+  .modal label,.settings-form label,.menu-builder form label,.slider-form label,
+  .role-editor form>label,.log-filters label,.cms-tip,.storage p,
+  .settings-footer,.empty-log,.table-footer,.users-footer
+){color:#c6d1e0}
+
+.app.dark-theme :where(
+  .client-identity small,.client-contact small,.project-name small,
+  .service-identity small,.user-identity small,.product-identity small,
+  .blog-identity small,.testimonial-client small,.page-identity small,
+  .menu-structure>div>span small,.slider-name p small,.log-user small,
+  .backup-name small,.backup-user small
+){color:var(--admin-muted)!important}
+
+.app.dark-theme :where(
+  h1,h2,h3,.stat strong,.product-stat b,.summary-row>b,.activity b,.person b,
+  .service-list b,.cms-name b,.menu-structure b,.media-content footer b,
+  .slider-name b,.role-name b,.log-user b,.backup-name b,.backup-user b,
+  .entity,.user-identity b,.product-identity b,.blog-identity b,
+  .testimonial-client b,.message-sender b,.message-subject b,.page-identity b,
+  .message-detail dd,.empty b
+){color:var(--admin-text)}
+
+.app.dark-theme .sidebar{background:linear-gradient(165deg,#030914,#07152a);border-right:1px solid #1d2b42}
+.app.dark-theme .modal-backdrop{background:#020713cc}
+.app.dark-theme .scrim{background:#020713bb}
+
+.app.dark-theme :where(a,.panel>a,.row-action,.quick-actions button svg){color:#62a8ff}
+.app.dark-theme :where(.project-more,.stock-low,.service-type,.blog-views svg){color:#adbbce}
+
+/* Preserve readable accent chips on dark surfaces. */
+.app.dark-theme :where(.blue,.green,.purple,.orange,.pink,.status-pill,.role-pill,.user-status,.project-status,.service-status,.product-status,.blog-status,.testimonial-status,.page-status,.role-status,.log-action,.log-status,.backup-type,.menu-location,.media-kind,.slider-status,.message-status,.page-type,.testimonial-service,.service-category,.industry-pill){filter:saturate(.9) brightness(.92)}
+
+/* Contact Messages: detail pane, editor, and responsive inbox */
+.app.dark-theme :where(.message-profile dl,.previous-conversation,.reply-tabs){border-color:var(--admin-border)}
+.app.dark-theme :where(.message-profile dt,.reply-editor>div){color:var(--admin-muted)}
+.app.dark-theme .reply-editor textarea{background-color:#101b2c;color:#dce6f5}
+.app.dark-theme .previous-conversation p em{background:#183b2c;color:#72dda5}
+.app.dark-theme .contact-table-wrap{scrollbar-color:#44536b var(--admin-surface)}
+.app.dark-theme .contact-table-wrap::-webkit-scrollbar{height:9px}
+.app.dark-theme .contact-table-wrap::-webkit-scrollbar-track{background:var(--admin-surface)}
+.app.dark-theme .contact-table-wrap::-webkit-scrollbar-thumb{background:#44536b;border-radius:8px}
+@media(max-width:850px){.app.dark-theme .message-profile dl{border-top-color:var(--admin-border)}}
+
+/* Role tone names must not inherit the global light stat backgrounds. */
+.app.dark-theme :where(.role-name.purple,.role-name.blue,.role-name.green,.role-name.orange,.role-name.pink,.role-name.slate){
+  background:transparent;
+  color:var(--admin-text);
+  filter:none;
+}
+.app.dark-theme :where(.roles-table tr.selected .role-name,.contact-table tr.selected .message-sender,.contact-table tr.selected .message-subject){color:var(--admin-text)}
+.app.dark-theme :where(.roles-table tr.selected .cms-name small,.contact-table tr.selected small){color:var(--admin-muted)!important}

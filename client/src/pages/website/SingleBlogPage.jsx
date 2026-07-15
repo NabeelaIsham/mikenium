@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import * as I from 'lucide-react';
-import './single-blog-page.css';
+import '../../styles/single-blog-page.css';
 
 const sections=[['state','The web, redefined'],['technologies','Technologies to watch'],['trends','Signals shaping the future'],['prepare','How teams can prepare'],['thoughts','Final thoughts']];
 const technologies=[

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import * as I from 'lucide-react';
-import './public-home.css';
+import '../../styles/public-home.css';
 
 const services=[
   [I.MonitorSmartphone,'Web Development','Modern, responsive, and high-performance websites built with the latest tech.','blue'],

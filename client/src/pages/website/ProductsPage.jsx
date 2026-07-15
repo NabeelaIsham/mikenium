@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import * as I from 'lucide-react';
-import './public-home.css';
-import './products-page.css';
+import '../../styles/public-home.css';
+import '../../styles/products-page.css';
 
 const navItems=[['Home','/'],['Services','/services'],['Portfolio','/portfolio'],['Products','/products'],['Pricing','/pricing'],['Blog','/blog'],['About','/about']];
 const categories=[['All products','all'],['SaaS platforms','saas'],['Developer tools','developer'],['Business tools','business'],['Mobile apps','mobile'],['E-commerce','commerce']];

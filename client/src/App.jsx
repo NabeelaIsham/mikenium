@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as I from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { ListingPage, UsersPage, ClientsPage, ProjectsPage, ServicesPage as AdminServicesPage, ProductsAdminPage, BlogsAdminPage, TestimonialsPage, ContactMessagesPage, PagesAdminPage, SettingsPage, BackupPage, ViewSite, listingNames } from './AdminPages';
-import { MenusPage, MediaLibraryPage, SlidersPage } from './CmsPages';
-import { RolesPermissionsPage, SettingsAdminPage, ActivityLogsPage, SystemBackupAdminPage } from './SystemAdminPages';
-import PublicHome from './PublicHome';
-import AboutPage from './AboutPage';
-import ServicesPage from './ServicesPage';
-import PortfolioPage from './PortfolioPage';
-import ProductsPage from './ProductsPage';
-import PricingPage from './PricingPage';
-import BlogPage from './BlogPage';
-import SingleBlogPage from './SingleBlogPage';
-import ContactPage from './ContactPage';
+import { ListingPage, UsersPage, ClientsPage, ProjectsPage, ServicesPage as AdminServicesPage, ProductsAdminPage, BlogsAdminPage, TestimonialsPage, ContactMessagesPage, PagesAdminPage, SettingsPage, BackupPage, ViewSite, listingNames } from './pages/admin/AdminPages';
+import { MenusPage, MediaLibraryPage, SlidersPage } from './pages/admin/CmsPages';
+import { RolesPermissionsPage, SettingsAdminPage, ActivityLogsPage, SystemBackupAdminPage } from './pages/admin/SystemAdminPages';
+import PublicHome from './pages/website/PublicHome';
+import AboutPage from './pages/website/AboutPage';
+import ServicesPage from './pages/website/ServicesPage';
+import PortfolioPage from './pages/website/PortfolioPage';
+import ProductsPage from './pages/website/ProductsPage';
+import PricingPage from './pages/website/PricingPage';
+import BlogPage from './pages/website/BlogPage';
+import SingleBlogPage from './pages/website/SingleBlogPage';
+import ContactPage from './pages/website/ContactPage';
+import AdminLogin from './pages/admin/AdminLogin';
+import { getAdminSession, logoutAdmin } from './services/admin/admin-api';
 
 const navGroups = [
   { label: '', items: [['Dashboard', I.LayoutDashboard]] },
@@ -54,7 +56,7 @@ function Sidebar({open,setOpen,active,onSelect}) { const go=n=>{onSelect(n);setO
   <button className="visit" onClick={()=>{window.location.href='/'}}><I.Globe2 size={18}/> View Site <I.ExternalLink size={16}/></button><footer>© 2024 Mikenium<br/><span>All Rights Reserved.</span></footer>
   <button className="mobile-close" onClick={()=>setOpen(false)}><I.X/></button>
   </aside> }
-function Header({toggle,title}) { const [dark,setDark]=useState(false);return <header><button className="icon-button" onClick={toggle}><I.Menu/></button><b>{title}</b><div className="header-actions"><button className="header-icon" onClick={()=>setDark(!dark)} title="Toggle theme">{dark?<I.Sun/>:<I.Moon/>}</button><span className="bell"><I.Bell/><i>5</i></span><div className="avatar">SA</div><div className="admin"><b>Super Admin</b><small>superadmin@mikenium.com</small></div><I.ChevronDown size={16}/></div></header> }
+function Header({toggle,title,user,onLogout,dark,onThemeChange}) { return <header><button className="icon-button" onClick={toggle}><I.Menu/></button><b>{title}</b><div className="header-actions"><button className="header-icon" onClick={onThemeChange} title={dark?'Use light theme':'Use dark theme'} aria-label={dark?'Use light theme':'Use dark theme'} aria-pressed={dark}>{dark?<I.Sun/>:<I.Moon/>}</button><span className="bell"><I.Bell/><i>5</i></span><div className="avatar">SA</div><div className="admin"><b>{user?.name||'Super Admin'}</b><small>{user?.email}</small></div><button className="header-icon" onClick={onLogout} title="Sign out" aria-label="Sign out"><I.LogOut/></button></div></header> }
 function StatCard({s}) { const [title,num,up,Icon,color]=s; return <div className="stat card"><div className={'stat-icon '+color}><Icon/></div><div><small>{title}</small><strong>{num}</strong><p>↑ {up} <span>vs last 7 days</span></p></div></div> }
 function PlatformChart(){ return <div className="card overview"><div className="card-title"><b>Platform Overview</b><div className="legend"><i className="dot blue-bg"/>Users <i className="dot green-bg"/>Projects <i className="dot purple-bg"/>Clients</div><button>Last 7 Days <I.ChevronDown size={14}/></button></div><div className="chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={chart} margin={{top:15,right:12,left:-22,bottom:0}}><defs>{[['u','#0874e8'],['p','#36b76d'],['c','#8c5ce5']].map(x=><linearGradient key={x[0]} id={x[0]} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={x[1]} stopOpacity=".12"/><stop offset="1" stopColor={x[1]} stopOpacity="0"/></linearGradient>)}</defs><CartesianGrid stroke="#eaf0f7" vertical={true}/><XAxis dataKey="d" tick={{fontSize:10,fill:'#66758f'}} axisLine={false} tickLine={false}/><YAxis domain={[0,1000]} tick={{fontSize:10,fill:'#66758f'}} axisLine={false} tickLine={false}/><Tooltip/><Area type="monotone" dataKey="Users" stroke="#0874e8" fill="url(#u)" strokeWidth={2} dot={{r:2}}/><Area type="monotone" dataKey="Projects" stroke="#36b76d" fill="url(#p)" strokeWidth={2} dot={{r:2}}/><Area type="monotone" dataKey="Clients" stroke="#8c5ce5" fill="url(#c)" strokeWidth={2} dot={{r:2}}/></AreaChart></ResponsiveContainer></div></div>}
 function Summary(){const rows=[[I.UserRound,'Active Users','892','green'],[I.Building2,'Active Clients','245','blue'],[I.Folder,'Running Projects','78','purple'],[I.BadgeHelp,'Support Tickets','16','orange'],[I.Mail,'Contact Messages','23','blue']];return <div className="card summary"><h3>System Summary</h3>{rows.map(([Icon,n,v,c])=><div className="summary-row" key={n}><span className={'mini '+c}><Icon/></span><span>{n}</span><b>{v}</b>{n==='Support Tickets'&&<em>Open</em>}</div>)}</div>}
@@ -64,5 +66,19 @@ function Users(){return <div className="card panel"><h3>Recent Users</h3><div cl
 function Status(){return <div className="card status"><div><span className="status-icon"><I.ShieldCheck/></span><p><small>System Status</small><b className="ok">All Systems Operational</b></p></div><div><span className="status-icon"><I.Server/></span><p><small>Server Uptime</small><b>99.9%</b><em>Last 30 days</em></p></div><div><span className="status-icon"><I.Database/></span><p><small>Total Storage</small><b>256.8 GB / 1 TB</b><span className="progress"><i/></span></p></div><div><span className="status-icon green"><I.HardDriveDownload/></span><p><small>Last Backup</small><b>May 21, 2024 02:30 AM</b><a>(View Logs)</a></p></div></div>}
 function Dashboard(){return <div className="content"><div className="welcome"><div><h1>Welcome back, Super Admin! 👋</h1><p>Here's what's happening with your platform today.</p></div><button><I.CalendarDays/> May 15, 2024 - May 21, 2024 <I.ChevronDown/></button></div><div className="stats">{stats.map(s=><StatCard key={s[0]} s={s}/>)}</div><div className="middle"><PlatformChart/><Summary/></div><div className="bottom"><Activities/><Services/><Users/></div><Status/></div>}
 function CurrentPage({active}){if(active==='Dashboard')return <Dashboard/>;if(active==='Users')return <UsersPage/>;if(active==='Clients')return <ClientsPage/>;if(active==='Projects')return <ProjectsPage/>;if(active==='Services')return <AdminServicesPage/>;if(active==='Products')return <ProductsAdminPage/>;if(active==='Blogs')return <BlogsAdminPage/>;if(active==='Testimonials')return <TestimonialsPage/>;if(active==='Contact Messages')return <ContactMessagesPage/>;if(active==='Pages')return <PagesAdminPage/>;if(active==='Menus')return <MenusPage/>;if(active==='Media Library')return <MediaLibraryPage/>;if(active==='Sliders')return <SlidersPage/>;if(active==='Roles & Permissions')return <RolesPermissionsPage/>;if(active==='Settings')return <SettingsAdminPage/>;if(active==='Activity Logs')return <ActivityLogsPage/>;if(active==='System Backup')return <SystemBackupAdminPage/>;if(active==='View Site')return <ViewSite/>;if(listingNames.includes(active))return <ListingPage name={active}/>;return <Dashboard/>}
-function AdminApp(){const [open,setOpen]=useState(false);const [active,setActive]=useState('Dashboard');return <div className="app"><Sidebar open={open} setOpen={setOpen} active={active} onSelect={setActive}/>{open&&<div className="scrim" onClick={()=>setOpen(false)}/>}<main><Header title={active} toggle={()=>setOpen(!open)}/><CurrentPage active={active}/></main></div>}
-export default function App(){const path=window.location.pathname;return path.startsWith('/admin')?<AdminApp/>:path.startsWith('/blog/')?<SingleBlogPage/>:path==='/about'||path==='/about/'?<AboutPage/>:path==='/services'||path==='/services/'?<ServicesPage/>:path==='/portfolio'||path==='/portfolio/'?<PortfolioPage/>:path==='/products'||path==='/products/'?<ProductsPage/>:path==='/pricing'||path==='/pricing/'?<PricingPage/>:path==='/blog'||path==='/blog/'?<BlogPage/>:path==='/contact'||path==='/contact/'?<ContactPage/>:<PublicHome/>}
+function AdminApp({user,onLogout}){
+  const [open,setOpen]=useState(false);
+  const [active,setActive]=useState('Dashboard');
+  const [dark,setDark]=useState(()=>localStorage.getItem('mikenium-admin-theme')==='dark');
+  function changeTheme(){setDark(current=>{const next=!current;localStorage.setItem('mikenium-admin-theme',next?'dark':'light');return next;});}
+  return <div className={dark?'app dark-theme':'app'}><Sidebar open={open} setOpen={setOpen} active={active} onSelect={setActive}/>{open&&<div className="scrim" onClick={()=>setOpen(false)}/>}<main><Header title={active} toggle={()=>setOpen(!open)} user={user} onLogout={onLogout} dark={dark} onThemeChange={changeTheme}/><CurrentPage active={active}/></main></div>
+}
+function AdminGate(){
+  const [state,setState]=useState({loading:true,user:null});
+  useEffect(()=>{let mounted=true;getAdminSession().then(({user})=>mounted&&setState({loading:false,user})).catch(()=>mounted&&setState({loading:false,user:null}));return()=>{mounted=false}},[]);
+  async function signOut(){try{await logoutAdmin();}finally{setState({loading:false,user:null});}}
+  if(state.loading)return <div className="admin-auth-loading"><I.LoaderCircle className="spin"/><span>Checking secure session...</span></div>;
+  if(!state.user)return <AdminLogin onLogin={user=>setState({loading:false,user})}/>;
+  return <AdminApp user={state.user} onLogout={signOut}/>;
+}
+export default function App(){const path=window.location.pathname;return path.startsWith('/admin')?<AdminGate/>:path.startsWith('/blog/')?<SingleBlogPage/>:path==='/about'||path==='/about/'?<AboutPage/>:path==='/services'||path==='/services/'?<ServicesPage/>:path==='/portfolio'||path==='/portfolio/'?<PortfolioPage/>:path==='/products'||path==='/products/'?<ProductsPage/>:path==='/pricing'||path==='/pricing/'?<PricingPage/>:path==='/blog'||path==='/blog/'?<BlogPage/>:path==='/contact'||path==='/contact/'?<ContactPage/>:<PublicHome/>}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import * as I from 'lucide-react';
-import './contact-page.css';
+import '../../styles/contact-page.css';
 
 const navItems = [['Home','/'],['Services','/services'],['Portfolio','/portfolio'],['Products','/products'],['Pricing','/pricing'],['Blog','/blog'],['About','/about'],['Contact','/contact']];
 const channels = [

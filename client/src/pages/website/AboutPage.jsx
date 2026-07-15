@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import * as I from 'lucide-react';
-import './about-page.css';
+import '../../styles/about-page.css';
 
 const metrics = [[I.BriefcaseBusiness,'100+','Products shipped'],[I.HeartHandshake,'50+','Client partnerships'],[I.Award,'5+','Years building'],[I.Headphones,'24/7','Support coverage']];
 const values = [[I.UsersRound,'Collaboration','The strongest products are shaped together—with open minds and shared ownership.'],[I.Lightbulb,'Innovation','We stay curious, challenge assumptions, and find simpler answers to hard problems.'],[I.ShieldCheck,'Integrity','Clear communication, honest decisions, and accountability at every step.'],[I.Gem,'Excellence','Craft matters. We sweat the details that make software reliable and memorable.'],[I.Heart,'Passion','We care deeply about the work, the people using it, and the outcomes it creates.']];

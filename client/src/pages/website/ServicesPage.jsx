@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import * as I from 'lucide-react';
-import './public-home.css';
-import './services-page.css';
+import '../../styles/public-home.css';
+import '../../styles/services-page.css';
 
 const navItems=[['Home','/'],['Services','/services'],['Portfolio','/portfolio'],['Products','/products'],['Pricing','/pricing'],['Blog','/blog'],['About','/about']];
 const services=[
