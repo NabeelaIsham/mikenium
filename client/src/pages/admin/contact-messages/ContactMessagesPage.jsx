@@ -1,36 +1,113 @@
-import React, { useMemo, useState } from 'react';
+import React,{useEffect,useMemo,useState} from 'react';
 import * as I from 'lucide-react';
+import {getContactMessage,getContactMessages,replyToContactMessage,updateContactMessage} from '../../../services/admin/admin-api';
 
-const messageSeed=[
-  {id:1,sender:'John Smith',email:'john.smith@email.com',phone:'+1 (555) 123-4567',location:'New York, USA',subject:'Project Inquiry',preview:'Hello, I am interested in your web development...',status:'New',date:'May 21, 2024',time:'10:30 AM',channel:'Contact Form',ip:'192.168.1.100',tone:'blue',body:['Hello,','I am interested in your web development services for my new project.','Could you please provide more information about your process, timeline and estimated cost?','Looking forward to your response.','Thank you!','John Smith']},
-  {id:2,sender:'Sarah Johnson',email:'sarah.johnson@email.com',phone:'+1 (555) 442-9182',location:'Austin, USA',subject:'General Question',preview:'Can you please provide more information about...',status:'New',date:'May 21, 2024',time:'09:15 AM',channel:'Email',ip:'192.168.1.114',tone:'purple',body:['Hello,','Can you please provide more information about your consulting services and availability?','Thank you,','Sarah Johnson']},
-  {id:3,sender:'Michael Brown',email:'michael.brown@email.com',phone:'+44 20 7788 1092',location:'London, UK',subject:'Service Support',preview:'I need help with integration of the payment...',status:'Replied',date:'May 20, 2024',time:'04:45 PM',channel:'Contact Form',ip:'172.16.2.41',tone:'orange',body:['Hi Support,','I need help with integration of the payment service in our application.','Please let me know the next steps.','Michael']},
-  {id:4,sender:'Emily Davis',email:'emily.davis@email.com',phone:'+1 (416) 555-2210',location:'Toronto, Canada',subject:'Partnership Opportunity',preview:'We are interested in partnership with your company...',status:'Replied',date:'May 20, 2024',time:'11:20 AM',channel:'Email',ip:'10.22.8.90',tone:'green',body:['Hello Mikenium,','We are interested in partnership with your company on an upcoming digital initiative.','I would love to arrange a call.','Emily Davis']},
-  {id:5,sender:'David Wilson',email:'david.wilson@email.com',phone:'+61 2 8844 2091',location:'Sydney, Australia',subject:'Custom Development',preview:'Do you develop custom applications? We have...',status:'New',date:'May 19, 2024',time:'03:10 PM',channel:'Live Chat',ip:'192.168.4.20',tone:'red',body:['Hi,','Do you develop custom applications? We have a detailed scope ready for review.','Regards,','David Wilson']},
-  {id:6,sender:'Laura Martinez',email:'laura.martinez@email.com',phone:'+49 30 2288 390',location:'Berlin, Germany',subject:'Pricing Information',preview:'Please share the pricing details for your services...',status:'Replied',date:'May 19, 2024',time:'10:05 AM',channel:'Contact Form',ip:'172.18.3.72',tone:'yellow',body:['Hello,','Please share the pricing details for your services and available engagement models.','Laura']},
-  {id:7,sender:'James Taylor',email:'james.taylor@email.com',phone:'+1 (415) 555-7731',location:'San Francisco, USA',subject:'Career Inquiry',preview:'I would like to know about job opportunities...',status:'New',date:'May 18, 2024',time:'05:30 PM',channel:'Email',ip:'10.0.1.56',tone:'cyan',body:['Hello,','I would like to know about job opportunities currently available at Mikenium.','Best,','James Taylor']},
-  {id:8,sender:'Olivia Anderson',email:'olivia.anderson@email.com',phone:'+81 90 4432 8100',location:'Tokyo, Japan',subject:'Website Feedback',preview:'Your website is amazing! Just wanted to provide...',status:'Replied',date:'May 18, 2024',time:'01:25 PM',channel:'Contact Form',ip:'192.168.8.33',tone:'purple',body:['Hi team,','Your website is amazing! Just wanted to provide some positive feedback on the design and experience.','Olivia Anderson']}
-];
-
-const messageStats=[['Total Messages','128','12.5%',I.Mail,'blue',true],['New Messages','18','20.0%',I.MessageSquare,'green',true],['Replied','92','8.3%',I.MailCheck,'orange',true],['Trash','6','14.3%',I.Trash2,'pink',false]];
+const tones=['blue','purple','orange','green','red','yellow','cyan'];
+const labels={NEW:'New',READ:'Read',REPLIED:'Replied',CLOSED:'Closed',TRASH:'Trash'};
+const dateParts=value=>{
+  const date=new Date(value);
+  return {
+    date:date.toLocaleDateString('en-US',{month:'short',day:'2-digit',year:'numeric'}),
+    time:date.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})
+  };
+};
+const initials=name=>name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join('').toUpperCase();
 
 export function ContactMessagesPage(){
-  const [messages,setMessages]=useState(messageSeed),[activeId,setActiveId]=useState(1),[query,setQuery]=useState(''),[status,setStatus]=useState('All Status'),[channel,setChannel]=useState('All Channels'),[selected,setSelected]=useState([]),[reply,setReply]=useState(''),[tab,setTab]=useState('Reply'),[toast,setToast]=useState('');
-  const filtered=useMemo(()=>messages.filter(m=>[m.sender,m.email,m.subject,m.preview].join(' ').toLowerCase().includes(query.toLowerCase())&&(status==='All Status'||m.status===status)&&(channel==='All Channels'||m.channel===channel)),[messages,query,status,channel]);
-  const active=messages.find(m=>m.id===activeId)||messages[0];
-  const flash=message=>{setToast(message);setTimeout(()=>setToast(''),2500)};
-  const toggle=id=>setSelected(selected.includes(id)?selected.filter(x=>x!==id):[...selected,id]);
-  const toggleAll=()=>setSelected(filtered.length&&filtered.every(m=>selected.includes(m.id))?selected.filter(id=>!filtered.some(m=>m.id===id)):[...new Set([...selected,...filtered.map(m=>m.id)])]);
-  const markReplied=()=>{setMessages(messages.map(m=>m.id===active.id?{...m,status:'Replied'}:m));flash('Message marked as replied')};
-  const remove=()=>{const remaining=messages.filter(m=>m.id!==active.id);setMessages(remaining);setActiveId(remaining[0]?.id);flash('Message moved to trash')};
-  const sendReply=()=>{if(!reply.trim()){flash('Write a reply first');return}setMessages(messages.map(m=>m.id===active.id?{...m,status:'Replied'}:m));setReply('');flash(tab==='Reply'?'Reply sent successfully':'Internal note saved')};
+  const [messages,setMessages]=useState([]);
+  const [stats,setStats]=useState({total:0,new:0,read:0,replied:0,closed:0,trash:0});
+  const [channels,setChannels]=useState([]);
+  const [activeId,setActiveId]=useState('');
+  const [active,setActive]=useState(null);
+  const [query,setQuery]=useState('');
+  const [status,setStatus]=useState('ALL');
+  const [channel,setChannel]=useState('ALL');
+  const [selected,setSelected]=useState([]);
+  const [reply,setReply]=useState('');
+  const [tab,setTab]=useState('REPLY');
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [error,setError]=useState('');
+  const [toast,setToast]=useState('');
+
+  const flash=message=>{setToast(message);window.setTimeout(()=>setToast(''),2500)};
+  const load=async(preferredId='')=>{
+    setLoading(true);setError('');
+    try{
+      const data=await getContactMessages();
+      setMessages(data.messages);setStats(data.stats);setChannels(data.channels);
+      const nextId=preferredId||activeId||data.messages[0]?.id||'';
+      setActiveId(nextId);
+      if(nextId){
+        const detail=await getContactMessage(nextId);
+        setActive(detail.message);
+      }else setActive(null);
+    }catch(loadError){setError(loadError.message)}
+    finally{setLoading(false)}
+  };
+  useEffect(()=>{load()},[]);
+
+  const filtered=useMemo(()=>messages.filter(message=>{
+    const matchesText=[message.sender,message.email,message.company,message.subject,message.message].join(' ').toLowerCase().includes(query.toLowerCase());
+    return matchesText&&(status==='ALL'||message.status===status)&&(channel==='ALL'||message.channel===channel);
+  }),[messages,query,status,channel]);
+
+  const openMessage=async message=>{
+    setActiveId(message.id);setError('');
+    try{
+      if(message.status==='NEW'){
+        await updateContactMessage(message.id,'READ');
+        setMessages(current=>current.map(item=>item.id===message.id?{...item,status:'READ'}:item));
+        setStats(current=>({...current,new:Math.max(0,Number(current.new)-1),read:Number(current.read)+1}));
+      }
+      setActive((await getContactMessage(message.id)).message);
+    }catch(openError){setError(openError.message)}
+  };
+  const toggle=id=>setSelected(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);
+  const toggleAll=()=>setSelected(current=>filtered.length&&filtered.every(message=>current.includes(message.id))?current.filter(id=>!filtered.some(message=>message.id===id)):[...new Set([...current,...filtered.map(message=>message.id)])]);
+  const changeStatus=async nextStatus=>{
+    if(!active)return;
+    setSaving(true);setError('');
+    try{await updateContactMessage(active.id,nextStatus);await load(active.id);flash(`Message marked as ${labels[nextStatus].toLowerCase()}`)}
+    catch(saveError){setError(saveError.message)}
+    finally{setSaving(false)}
+  };
+  const sendReply=async()=>{
+    if(!active||!reply.trim()){flash(tab==='REPLY'?'Write a reply first':'Write a note first');return}
+    setSaving(true);setError('');
+    try{
+      await replyToContactMessage(active.id,reply,tab);
+      setReply('');await load(active.id);
+      flash(tab==='REPLY'?'Reply emailed successfully':'Internal note saved');
+    }catch(sendError){setError(sendError.message);await load(active.id)}
+    finally{setSaving(false)}
+  };
+  const statCards=[
+    ['Total Messages',stats.total,I.Mail,'blue'],
+    ['New Messages',stats.new,I.MessageSquare,'green'],
+    ['Replied',stats.replied,I.MailCheck,'orange'],
+    ['Trash',stats.trash,I.Trash2,'pink']
+  ];
+
   return <div className="users-page contact-messages-page">
-    <div className="users-heading contact-heading"><div><h1>Contact Messages</h1><div className="users-crumb">Dashboard <I.ChevronRight/> <span>Contact Messages</span></div></div></div>
-    <div className="contact-layout"><div className="contact-left"><div className="contact-stats">{messageStats.map(([title,value,change,Icon,color,up])=><div className="card user-stat" key={title}><span className={`user-stat-icon ${color}`}><Icon/></span><div><small>{title}</small><b>{value}</b><p className={up?'up':'down'}>{up?<I.ArrowUp/>:<I.ArrowDown/>}{change}<span>vs last 7 days</span></p></div></div>)}</div>
-      <div className="card contact-inbox"><div className="contact-toolbar"><div className="users-search"><I.Search/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search messages..."/></div><select value={status} onChange={e=>setStatus(e.target.value)}><option>All Status</option><option>New</option><option>Replied</option></select><select value={channel} onChange={e=>setChannel(e.target.value)}><option>All Channels</option><option>Contact Form</option><option>Email</option><option>Live Chat</option></select><div className="toolbar-spacer"/><button className="date-button"><I.CalendarDays/> May 15, 2024 - May 21, 2024 <I.ChevronDown/></button><button><I.ListFilter/> Filter</button></div>
-        <div className="contact-table-wrap"><table className="users-table contact-table"><thead><tr><th><input type="checkbox" checked={filtered.length>0&&filtered.every(m=>selected.includes(m.id))} onChange={toggleAll}/></th><th>Sender</th><th>Subject</th><th>Status</th><th>Received On <I.RotateCw/></th></tr></thead><tbody>{filtered.map(m=><tr key={m.id} className={m.id===activeId?'selected':''} onClick={()=>setActiveId(m.id)}><td><input type="checkbox" checked={selected.includes(m.id)} onClick={e=>e.stopPropagation()} onChange={()=>toggle(m.id)}/></td><td><div className="message-sender"><i className={m.tone}>{m.sender.split(' ').map(x=>x[0]).join('')}</i><span><b>{m.sender}</b><small>{m.email}</small></span></div></td><td><span className="message-subject"><b>{m.subject}</b><small>{m.preview}</small></span></td><td><span className={`message-status ${m.status.toLowerCase()}`}>{m.status}</span></td><td><span className="created-date">{m.date}<small>{m.time}</small></span></td></tr>)}</tbody></table>{!filtered.length&&<div className="empty"><I.SearchX/><b>No messages found</b><span>Try changing the search or filters.</span></div>}</div>
-        <div className="users-footer"><span>Showing 1 to {filtered.length} of 128 results</span><div><button aria-label="Previous"><I.ChevronLeft/></button><button className="active">1</button><button>2</button><button>3</button><span>...</span><button>16</button><button aria-label="Next"><I.ChevronRight/></button></div></div></div></div>
-      {active&&<aside className="card message-detail"><div className="message-detail-head"><h2>{active.subject}</h2><span className={`message-status ${active.status.toLowerCase()}`}>{active.status}</span><div><button title="Mark replied" onClick={markReplied}><I.CircleCheck/></button><button title="Move to trash" onClick={remove}><I.Trash2/></button><button><I.EllipsisVertical/></button></div></div><div className="message-profile"><div className="message-person"><i className={active.tone}>{active.sender.split(' ').map(x=>x[0]).join('')}</i><span><b>{active.sender}</b><small>{active.email}</small><small>{active.phone}</small><small>{active.location}</small></span></div><dl><div><dt>Received On</dt><dd>{active.date} {active.time}</dd></div><div><dt>Channel</dt><dd>{active.channel}</dd></div><div><dt>IP Address</dt><dd>{active.ip}</dd></div></dl></div><div className="message-body">{active.body.map((p,i)=><p key={i}>{p}</p>)}</div><div className="previous-conversation"><h3>Previous Conversations (1) <I.ChevronDown/></h3><div><span className="mini-admin">SA</span><p><b>Super Admin</b><small>May 21, 2024 11:15 AM</small><em>Replied</em><span>Hello {active.sender.split(' ')[0]}, Thank you for reaching out to us. We’d be happy to help...</span></p></div></div><div className="reply-tabs"><button className={tab==='Reply'?'active':''} onClick={()=>setTab('Reply')}>Reply</button><button className={tab==='Internal Note'?'active':''} onClick={()=>setTab('Internal Note')}>Internal Note</button></div><div className="reply-editor"><div><I.Bold/><I.Italic/><I.Underline/><I.List/><I.ListOrdered/><I.Link/><I.Image/><I.SquarePlay/></div><textarea value={reply} onChange={e=>setReply(e.target.value)} placeholder={tab==='Reply'?'Type your reply...':'Add an internal note...'}/></div><div className="reply-actions"><button onClick={()=>flash('Attach file selected')}><I.Paperclip/> Attach File</button><button onClick={sendReply}><I.Send/> {tab==='Reply'?'Send Reply':'Save Note'} <I.ChevronDown/></button></div></aside>}
+    <div className="users-heading contact-heading"><div><h1>Contact Messages</h1><div className="users-crumb">Dashboard <I.ChevronRight/> <span>Contact Messages</span></div></div><button className="users-add" onClick={()=>load(activeId)} disabled={loading}><I.RefreshCw className={loading?'spin':''}/> Refresh</button></div>
+    {error&&<div className="admin-inline-error"><I.CircleAlert/><span>{error}</span><button onClick={()=>setError('')}><I.X/></button></div>}
+    <div className="contact-layout"><div className="contact-left"><div className="contact-stats">{statCards.map(([title,value,Icon,color])=><div className="card user-stat" key={title}><span className={`user-stat-icon ${color}`}><Icon/></span><div><small>{title}</small><b>{Number(value||0).toLocaleString()}</b><p><span>Live database total</span></p></div></div>)}</div>
+      <div className="card contact-inbox"><div className="contact-toolbar"><div className="users-search"><I.Search/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Search messages..."/></div><select value={status} onChange={event=>setStatus(event.target.value)}><option value="ALL">All Status</option>{Object.entries(labels).map(([value,label])=><option value={value} key={value}>{label}</option>)}</select><select value={channel} onChange={event=>setChannel(event.target.value)}><option value="ALL">All Channels</option>{channels.map(value=><option value={value} key={value}>{value}</option>)}</select><div className="toolbar-spacer"/><button onClick={()=>{setQuery('');setStatus('ALL');setChannel('ALL')}}><I.ListFilter/> Clear Filters</button></div>
+        <div className="contact-table-wrap"><table className="users-table contact-table"><thead><tr><th><input type="checkbox" checked={filtered.length>0&&filtered.every(message=>selected.includes(message.id))} onChange={toggleAll}/></th><th>Sender</th><th>Subject</th><th>Status</th><th>Received On <I.RotateCw/></th></tr></thead><tbody>{filtered.map((message,index)=>{const received=dateParts(message.createdAt);return <tr key={message.id} className={message.id===activeId?'selected':''} onClick={()=>openMessage(message)}><td><input type="checkbox" checked={selected.includes(message.id)} onClick={event=>event.stopPropagation()} onChange={()=>toggle(message.id)}/></td><td><div className="message-sender"><i className={tones[index%tones.length]}>{initials(message.sender)}</i><span><b>{message.sender}</b><small>{message.email}</small></span></div></td><td><span className="message-subject"><b>{message.subject}</b><small>{message.message}</small></span></td><td><span className={`message-status ${message.status.toLowerCase()}`}>{labels[message.status]}</span></td><td><span className="created-date">{received.date}<small>{received.time}</small></span></td></tr>})}</tbody></table>{!loading&&!filtered.length&&<div className="empty"><I.MailOpen/><b>No enquiries found</b><span>Website enquiries will appear here as soon as they are submitted.</span></div>}{loading&&<div className="empty"><I.LoaderCircle className="spin"/><b>Loading enquiries...</b></div>}</div>
+        <div className="users-footer"><span>Showing {filtered.length} of {messages.length} messages</span></div></div></div>
+      {active&&<MessageDetail active={active} saving={saving} reply={reply} setReply={setReply} tab={tab} setTab={setTab} changeStatus={changeStatus} sendReply={sendReply}/>}
     </div>{toast&&<div className="toast"><I.CircleCheck/>{toast}</div>}
-  </div>
+  </div>;
+}
+
+function MessageDetail({active,saving,reply,setReply,tab,setTab,changeStatus,sendReply}){
+  const received=dateParts(active.createdAt);
+  return <aside className="card message-detail"><div className="message-detail-head"><h2>{active.subject}</h2><span className={`message-status ${active.status.toLowerCase()}`}>{labels[active.status]}</span><div><button title="Close enquiry" disabled={saving} onClick={()=>changeStatus('CLOSED')}><I.CircleCheck/></button><button title="Move to trash" disabled={saving} onClick={()=>changeStatus('TRASH')}><I.Trash2/></button></div></div>
+    <div className="message-profile"><div className="message-person"><i className="blue">{initials(active.sender)}</i><span><b>{active.sender}</b><small>{active.email}</small>{active.phone&&<small>{active.phone}</small>}{active.company&&<small>{active.company}</small>}</span></div><dl><div><dt>Received On</dt><dd>{received.date} {received.time}</dd></div><div><dt>Channel</dt><dd>{active.channel}</dd></div><div><dt>IP Address</dt><dd>{active.ip||'Unavailable'}</dd></div></dl></div>
+    <div className="message-enquiry-meta"><span><b>Requested service</b>{active.service||'General enquiry'}</span><span><b>Notification email</b>{active.notificationStatus==='SENT'?'Delivered':active.notificationStatus==='FAILED'?'Failed':'Pending'}</span></div>
+    <div className="message-body">{active.message.split(/\r?\n/).map((paragraph,index)=><p key={index}>{paragraph||'\u00a0'}</p>)}</div>
+    <div className="previous-conversation"><h3>Conversation history ({active.replies.length}) <I.ChevronDown/></h3>{active.replies.length?active.replies.map(item=><div key={item.id}><span className="mini-admin">SA</span><p><b>{item.type==='INTERNAL_NOTE'?'Internal Note':item.createdBy}</b><small>{new Date(item.createdAt).toLocaleString()}</small><em>{item.type==='INTERNAL_NOTE'?'Private':item.emailStatus==='SENT'?'Sent':item.emailStatus}</em><span>{item.body}</span></p></div>):<div className="message-no-replies">No replies or internal notes yet.</div>}</div>
+    <div className="reply-tabs"><button className={tab==='REPLY'?'active':''} onClick={()=>setTab('REPLY')}>Reply by Email</button><button className={tab==='INTERNAL_NOTE'?'active':''} onClick={()=>setTab('INTERNAL_NOTE')}>Internal Note</button></div><div className="reply-editor"><div>{tab==='REPLY'?<><I.Mail/> Reply will be emailed to {active.email}</>:<><I.LockKeyhole/> Only Super Admin can see this note</>}</div><textarea value={reply} onChange={event=>setReply(event.target.value)} placeholder={tab==='REPLY'?'Type your email reply...':'Add a private internal note...'}/></div><div className="reply-actions"><span/><button disabled={saving} onClick={sendReply}>{saving?<I.LoaderCircle className="spin"/>:<I.Send/>} {tab==='REPLY'?'Send Reply':'Save Note'}</button></div>
+  </aside>;
 }
