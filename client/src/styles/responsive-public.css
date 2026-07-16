@@ -1,0 +1,327 @@
+/* Final, shared responsive guardrails for every public route. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-width: 0;
+}
+
+.public-site {
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.public-site > *,
+.public-site main,
+.public-site main > section,
+.public-site header > * {
+  min-width: 0;
+}
+
+.public-site img,
+.public-site svg,
+.public-site video,
+.public-site canvas {
+  max-width: 100%;
+}
+
+.public-site input,
+.public-site textarea,
+.public-site select,
+.public-site button {
+  max-width: 100%;
+  font: inherit;
+}
+
+.public-site h1,
+.public-site h2,
+.public-site h3,
+.public-site p,
+.public-site a,
+.public-site li,
+.public-site dd {
+  overflow-wrap: break-word;
+}
+
+@supports (text-wrap: balance) {
+  .public-site h1,
+  .public-site h2 {
+    text-wrap: balance;
+  }
+}
+
+/* The same header is used by all public pages; keep its mobile behavior uniform. */
+@media (max-width: 980px) {
+  .public-site .public-header {
+    width: 100%;
+    height: 76px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+  }
+
+  .public-site .public-header.scrolled {
+    height: 68px;
+  }
+
+  .public-site .public-header .public-logo {
+    width: min(205px, 100%);
+    min-width: 0;
+  }
+
+  .public-site .public-header .public-logo img {
+    width: 100%;
+    max-width: 205px;
+    object-fit: contain;
+  }
+
+  .public-site .nav-actions {
+    width: auto;
+    min-width: 0;
+    grid-column: 2;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .public-site .public-header .menu-toggle {
+    display: grid;
+    place-items: center;
+    flex: 0 0 43px;
+    width: 43px;
+    height: 43px;
+  }
+
+  .public-site .nav-center {
+    position: fixed;
+    z-index: 101;
+    top: 82px;
+    left: 18px;
+    right: 18px;
+    width: auto;
+    pointer-events: none;
+  }
+
+  .public-site .public-header.scrolled .nav-center {
+    top: 74px;
+  }
+
+  .public-site .public-header .nav-center nav {
+    width: 100%;
+    max-height: calc(100dvh - 94px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .public-site .public-header .nav-center nav.open {
+    pointer-events: auto;
+  }
+
+  .public-site .public-header .nav-center nav a {
+    min-height: 44px;
+  }
+
+  .public-site .hero,
+  .public-site [class$="-hero"],
+  .public-site [class*="-hero "] {
+    max-width: 100%;
+  }
+
+  .public-site .hero > *,
+  .public-site [class$="-hero"] > *,
+  .public-site [class*="-hero "] > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .public-site .site-button,
+  .public-site .about-button,
+  .public-site .nav-contact,
+  .public-site button,
+  .public-site input,
+  .public-site select {
+    min-height: 44px;
+  }
+
+  .public-site .section-head-public,
+  .public-site .services-section-head,
+  .public-site .work-heading,
+  .public-site .journal-head,
+  .public-site .pricing-heading,
+  .public-site .catalog-intro {
+    min-width: 0;
+  }
+
+  .public-site .filter-bar,
+  .public-site .category-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .public-site .filter-bar::-webkit-scrollbar,
+  .public-site .category-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .public-site .filter-bar button,
+  .public-site .category-tabs button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .public-site .billing-switch,
+  .public-site .billing-toggle,
+  .public-site .currency-toggle {
+    max-width: 100%;
+  }
+
+  .public-site .hero-actions,
+  .public-site .about-actions,
+  .public-site .portfolio-actions,
+  .public-site .products-hero-actions,
+  .public-site .contact-hero-actions {
+    flex-wrap: wrap;
+  }
+
+  .public-site .article-byline,
+  .public-site .project-tags,
+  .public-site .pricing-trust,
+  .public-site .hero-proofline {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .public-site .story-window,
+  .public-site .story-photo,
+  .public-site .services-console,
+  .public-site .showcase-frame,
+  .public-site .product-command,
+  .public-site .message-core,
+  .public-site .art-frame {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .public-site .public-header {
+    height: 70px;
+    padding-right: max(14px, env(safe-area-inset-right));
+    padding-left: max(14px, env(safe-area-inset-left));
+    grid-template-columns: minmax(0, 1fr) 43px;
+    gap: 10px;
+  }
+
+  .public-site .public-header .public-logo,
+  .public-site .public-header .public-logo img {
+    width: min(170px, 100%);
+  }
+
+  .public-site .nav-actions {
+    width: 43px;
+  }
+
+  .public-site .nav-contact {
+    display: none;
+  }
+
+  .public-site .nav-center {
+    top: 76px;
+    left: 12px;
+    right: 12px;
+  }
+
+  .public-site .public-header.scrolled .nav-center {
+    top: 74px;
+  }
+
+  .public-site h1 {
+    letter-spacing: max(-2.5px, -0.07em);
+  }
+
+  .public-site .hero-actions,
+  .public-site .about-actions,
+  .public-site .portfolio-actions,
+  .public-site .products-hero-actions,
+  .public-site .contact-hero-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .public-site .hero-actions > *,
+  .public-site .about-actions > *,
+  .public-site .portfolio-actions > *,
+  .public-site .products-hero-actions .site-button,
+  .public-site .contact-hero-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .public-site .article-cover figcaption,
+  .public-site .mini-bar span,
+  .public-site .command-title button,
+  .public-site .console-top b {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .public-site .about-footer-links,
+  .public-site .footer-links {
+    gap: 24px 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .public-site .public-header {
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-left: max(10px, env(safe-area-inset-left));
+    grid-template-columns: minmax(0, 1fr) 40px;
+  }
+
+  .public-site .public-header .public-logo,
+  .public-site .public-header .public-logo img {
+    width: min(148px, 100%);
+  }
+
+  .public-site .nav-actions,
+  .public-site .public-header .menu-toggle {
+    width: 40px;
+  }
+
+  .public-site .about-footer-links,
+  .public-site .footer-links {
+    grid-template-columns: 1fr;
+  }
+
+  .public-site .hero-proof,
+  .public-site .hero-stats,
+  .public-site .trust-metrics,
+  .public-site .about-metrics,
+  .public-site .idea-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (hover: none) {
+  .public-site a:hover,
+  .public-site button:hover,
+  .public-site article:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-site {
+    scroll-behavior: auto;
+  }
+}

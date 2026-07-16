@@ -11,7 +11,7 @@ const currencyLabel=currency=>({USD:'$',LKR:'Rs.',AUD:'A$'})[currency]||currency
 const formatPrice=(value,currency)=>new Intl.NumberFormat('en-US',{maximumFractionDigits:currency==='LKR'?0:2}).format(value);
 const partnerIcons={building:I.Building2,layers:I.Layers3,cloud:I.Cloud,data:I.CircleDotDashed,network:I.Network,hexagon:I.Hexagon,badge:I.Badge,globe:I.Globe2,briefcase:I.BriefcaseBusiness,handshake:I.Handshake};
 
-function Logo(){return <a className="public-logo" href="#home" aria-label="Mikenium home"><img src="/assets/mikenium-logo-transparent.png" alt="Mikenium — Building Smarter Software"/></a>}
+function Logo(){return <a className="public-logo" href="#home" aria-label="Mikenium home"><img src={companyContact.logoUrl} alt={companyContact.logoAlt}/></a>}
 function Button({children,outline=false,href='/contact'}){return <a className={'site-button '+(outline?'outline':'')} href={href}>{children}<I.ArrowRight/></a>}
 const sectionDescriptions={
   'Services We Provide':'End-to-end technology expertise to move your business forward.',

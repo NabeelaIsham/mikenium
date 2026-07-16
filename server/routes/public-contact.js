@@ -27,11 +27,16 @@ router.post('/',async(req,res)=>{
   const record=rows[0];
   let notificationSent=false;
   try{
-    await sendContactNotification({
+    const settingsResult=await pool.query('SELECT general,email FROM site_settings WHERE id=1');
+    const siteSettings=settingsResult.rows[0]||{};const emailSettings=siteSettings.email||{};
+    if(emailSettings.notifyContact===false){
+      await pool.query(`UPDATE contact_messages SET notification_status='SENT',notification_error='',updated_at=now() WHERE id=$1`,[record.id]);
+    }else await sendContactNotification({
       senderName:record.sender_name,senderEmail:record.sender_email,company:record.company,
-      phone:record.phone,service:record.service,subject:record.subject,message:record.message
+      phone:record.phone,service:record.service,subject:record.subject,message:record.message,
+      notificationEmail:emailSettings.notificationEmail,senderBrand:emailSettings.senderName||siteSettings.general?.siteName
     });
-    notificationSent=true;
+    notificationSent=emailSettings.notifyContact!==false;
     await pool.query(`UPDATE contact_messages SET notification_status='SENT',notification_error='',updated_at=now() WHERE id=$1`,[record.id]);
   }catch(error){
     console.error('Contact notification email failed:',error.message);

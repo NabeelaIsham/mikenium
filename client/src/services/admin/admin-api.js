@@ -100,3 +100,21 @@ export async function uploadPartnerLogo(file){
   if(!response.ok)throw new Error(data.message||'Unable to upload the partner logo');
   return data;
 }
+export const getSiteSettings=()=>adminRequest('/api/admin/settings');
+export const updateSiteSettings=(section,data)=>adminRequest(`/api/admin/settings/${section}`,{method:'PATCH',body:JSON.stringify(data)});
+export async function uploadSiteIdentityImage(file){
+  const response=await fetch(`${API_URL}/api/admin/settings/identity-upload`,{method:'POST',credentials:'include',headers:{'Content-Type':file.type},body:file});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.message||'Unable to upload the image');
+  return data;
+}
+export const getActivityLogs=(filters={})=>{const query=new URLSearchParams(Object.entries(filters).filter(([,value])=>value!==undefined&&value!==''));return adminRequest(`/api/admin/activity-logs?${query}`)};
+export async function exportActivityLogs(filters={},format='csv'){
+  const query=new URLSearchParams({...filters,format});const response=await fetch(`${API_URL}/api/admin/activity-logs/export?${query}`,{credentials:'include'});if(!response.ok)throw new Error('Unable to export activity logs');const blob=await response.blob();const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=response.headers.get('content-disposition')?.match(/filename="?([^";]+)"?/)?.[1]||`activity-logs.${format}`;anchor.click();URL.revokeObjectURL(url);
+}
+export const getSystemBackups=()=>adminRequest('/api/admin/system-backups');
+export const createSystemBackup=data=>adminRequest('/api/admin/system-backups',{method:'POST',body:JSON.stringify(data)});
+export const updateBackupSchedule=data=>adminRequest('/api/admin/system-backups/schedule',{method:'PATCH',body:JSON.stringify(data)});
+export const restoreSystemBackup=id=>adminRequest(`/api/admin/system-backups/${id}/restore`,{method:'POST',body:JSON.stringify({confirmation:'RESTORE'})});
+export const deleteSystemBackup=id=>adminRequest(`/api/admin/system-backups/${id}`,{method:'DELETE'});
+export function downloadSystemBackup(id){window.location.href=`${API_URL}/api/admin/system-backups/${id}/download`}

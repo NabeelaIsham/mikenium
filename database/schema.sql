@@ -1,5 +1,31 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+CREATE TABLE IF NOT EXISTS site_settings (
+  id smallint PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  general jsonb NOT NULL DEFAULT '{}'::jsonb,
+  identity jsonb NOT NULL DEFAULT '{}'::jsonb,
+  email jsonb NOT NULL DEFAULT '{}'::jsonb,
+  seo jsonb NOT NULL DEFAULT '{}'::jsonb,
+  social jsonb NOT NULL DEFAULT '{}'::jsonb,
+  maintenance jsonb NOT NULL DEFAULT '{}'::jsonb,
+  security jsonb NOT NULL DEFAULT '{}'::jsonb,
+  others jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_by uuid,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+INSERT INTO site_settings(id,general,identity,email,seo,social,maintenance,security,others)
+VALUES (1,
+  '{"siteName":"Mikenium","tagline":"Building Smarter Software","contactEmail":"info@mikenium.com","phonePrimary":"078 789 6876","phoneSecondary":"076 995 6938","address":"116 Marikkar Street, Kalutara South","language":"English","timezone":"Asia/Colombo","itemsPerPage":10}',
+  '{"logoUrl":"/assets/mikenium-logo-transparent.png","faviconUrl":"/assets/mikenium-logo-transparent.png","logoAlt":"Mikenium — Building Smarter Software","primaryColor":"#0874ee"}',
+  '{"senderName":"Mikenium","replyTo":"info@mikenium.com","notificationEmail":"info@mikenium.com","notifyContact":true,"notifyNewsletter":true}',
+  '{"defaultTitle":"Mikenium | Building Smarter Software","titleSuffix":" | Mikenium","description":"Mikenium designs and engineers secure digital products that help ambitious businesses grow.","keywords":"software development, web development, mobile apps, Sri Lanka","ogImageUrl":"","allowIndexing":true}',
+  '{"facebook":"https://www.facebook.com/","instagram":"https://www.instagram.com/","linkedin":"https://www.linkedin.com/","tiktok":"https://www.tiktok.com/","youtube":"https://www.youtube.com/"}',
+  '{"enabled":false,"title":"We will be back soon","message":"Our website is receiving an update. Please check back shortly."}',
+  '{"sessionMinutes":480,"maxLoginAttempts":5,"auditLogging":true}',
+  '{"copyright":"© 2026 Mikenium. All rights reserved.","footerDescription":"We design and engineer secure digital products that help ambitious businesses grow with confidence.","businessHours":"Monday–Friday, 9:00 AM–6:00 PM","mapsUrl":"https://maps.google.com/?q=116+Marikkar+Street+Kalutara+South","showSystemStatus":true}'
+) ON CONFLICT (id) DO NOTHING;
+
 DO $$ BEGIN
   CREATE TYPE user_role AS ENUM ('SUPER_ADMIN','ADMIN','EDITOR','CLIENT','AUTHOR','SUBSCRIBER');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
@@ -28,6 +54,35 @@ CREATE TABLE IF NOT EXISTS admin_audit_logs (
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS system_backups (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name varchar(180) NOT NULL,
+  description text NOT NULL DEFAULT '',
+  backup_type varchar(20) NOT NULL DEFAULT 'MANUAL' CHECK (backup_type IN ('MANUAL','SCHEDULED','SAFETY')),
+  includes text[] NOT NULL DEFAULT ARRAY['Database'],
+  filename text NOT NULL UNIQUE,
+  size_bytes bigint NOT NULL DEFAULT 0,
+  status varchar(20) NOT NULL DEFAULT 'CREATING' CHECK (status IN ('CREATING','SUCCESS','FAILED','RESTORED')),
+  error_message text NOT NULL DEFAULT '',
+  created_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  restored_at timestamptz
+);
+
+CREATE TABLE IF NOT EXISTS backup_schedule (
+  id smallint PRIMARY KEY DEFAULT 1 CHECK (id=1),
+  enabled boolean NOT NULL DEFAULT false,
+  frequency varchar(20) NOT NULL DEFAULT 'DAILY' CHECK (frequency IN ('DAILY','WEEKLY','MONTHLY')),
+  run_time time NOT NULL DEFAULT '02:00',
+  retention_days integer NOT NULL DEFAULT 30 CHECK (retention_days BETWEEN 1 AND 365),
+  include_items text[] NOT NULL DEFAULT ARRAY['Database'],
+  next_run_at timestamptz,
+  last_run_at timestamptz,
+  updated_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+INSERT INTO backup_schedule(id) VALUES(1) ON CONFLICT(id) DO NOTHING;
 CREATE INDEX IF NOT EXISTS admin_audit_user_idx ON admin_audit_logs(user_id,created_at DESC);
 
 -- Enforce one platform-level super admin at the database layer.

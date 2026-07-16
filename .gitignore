@@ -5,3 +5,5 @@ dist/
 tmp/
 server/uploads/*
 !server/uploads/.gitkeep
+server/backups/*
+!server/backups/.gitkeep

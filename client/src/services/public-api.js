@@ -67,3 +67,9 @@ export async function getPublicPartners(){
   if(!response.ok)throw new Error(data.message||'Unable to load partners');
   return data.partners||[];
 }
+export async function getPublicSettings(){
+  const response=await fetch(`${API_URL}/api/settings`,{cache:'no-store'});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.message||'Unable to load site settings');
+  return data.settings;
+}

@@ -6,5 +6,7 @@ import './styles/admin/cms-pages.css';
 import './styles/admin/system-admin.css';
 import './styles/admin/admin-login.css';
 import './styles/admin/admin-theme.css';
+import './styles/admin/header-controls.css';
+import './styles/responsive-public.css';
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><App /></React.StrictMode>);

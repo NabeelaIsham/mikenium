@@ -8,7 +8,7 @@ const values = [[I.UsersRound,'Collaboration','The strongest products are shaped
 const team = [['NP','Nuwan Perera','CEO & Founder','strategy'],['TS','Tharushi Silva','Chief Technology Officer','systems'],['KD','Kasun De Silva','Lead Developer','engineering'],['DF','Dinithi Fernando','UI/UX Designer','experience']];
 const process = [[I.Search,'Discover','We unpack the business problem, users, risks, and the result that matters.'],[I.PenTool,'Design','We turn insight into a clear product direction and intuitive experience.'],[I.Code2,'Build','Our engineers ship secure, maintainable software in visible iterations.'],[I.LineChart,'Evolve','We measure, learn, support, and improve long after the first release.']];
 
-function Logo(){return <a className="public-logo" href="/" aria-label="Mikenium home"><img src="/assets/mikenium-logo-transparent.png" alt="Mikenium — Building Smarter Software"/></a>}
+function Logo(){return <a className="public-logo" href="/" aria-label="Mikenium home"><img src={companyContact.logoUrl} alt={companyContact.logoAlt}/></a>}
 function ArrowLink({children,href='/#contact',ghost=false}){return <a className={'about-button'+(ghost?' ghost':'')} href={href}>{children}<I.ArrowUpRight/></a>}
 function SiteButton({children,href='/#contact'}){return <a className="site-button" href={href}>{children}<I.ArrowRight/></a>}
 

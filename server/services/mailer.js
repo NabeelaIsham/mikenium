@@ -28,8 +28,8 @@ const lines=value=>escapeHtml(value).replace(/\r?\n/g,'<br>');
 export async function sendContactNotification(message){
   const subject=`New website enquiry: ${message.subject}`;
   return getTransporter().sendMail({
-    from:`Mikenium Website <${user}>`,
-    to:contactTo,
+    from:`${message.senderBrand||'Mikenium Website'} <${user}>`,
+    to:message.notificationEmail||contactTo,
     replyTo:`${message.senderName} <${message.senderEmail}>`,
     subject,
     text:[
