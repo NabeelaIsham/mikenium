@@ -35,6 +35,7 @@ router.post('/super-admin/login',async(req,res)=>{
   const {rows}=await pool.query("SELECT id,name,email,password_hash,role FROM users WHERE lower(email)=lower($1) AND role='SUPER_ADMIN' AND active=true",[email]);
   const user=rows[0];
   if(!user || !(await bcrypt.compare(password,user.password_hash))) return res.status(401).json({message:'Invalid email or password'});
+  await pool.query('UPDATE users SET last_login_at=now() WHERE id=$1',[user.id]);
   const token=jwt.sign({sub:user.id,email:user.email,role:user.role},process.env.JWT_SECRET,{expiresIn:'8h'});
   await pool.query('INSERT INTO admin_audit_logs (user_id,action,ip_address) VALUES ($1,$2,$3)',[user.id,'SUPER_ADMIN_LOGIN',req.ip]);
   attempts.delete(req.ip);

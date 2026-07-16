@@ -23,5 +23,8 @@ Public website: http://localhost:5173 · Admin dashboard: http://localhost:5173/
 - Admin routes verify both the signed JWT and the `SUPER_ADMIN` role.
 - Login activity is written to `admin_audit_logs`.
 - PostgreSQL enforces a single super-admin account using a partial unique index.
+- The protected dashboard API reads live totals, seven-day trends, audit activity, recent users, services, projects, products, blogs, and contact-message summaries from PostgreSQL.
+- The protected Users API provides PostgreSQL-backed create, list/read, update, and delete operations with bcrypt password hashing, validation, uniqueness checks, audit logs, and super-admin account protection.
+- The protected Clients API provides PostgreSQL-backed organization CRUD, contact details, status, revenue and project counts, filters, uniqueness validation, and audit logging.
 
 In production, serve the admin over HTTPS, consider restricting `/api/auth/super-admin/*` to the company VPN or office IP range, and keep PostgreSQL credentials in a secret manager.
