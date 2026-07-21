@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "node --watch src.js",
     "start": "node src.js",
+    "test": "node --test",
+    "check": "node --check src.js && node --check app.js && node --test",
     "db:init": "node scripts/init-db.js",
     "admin:create": "node scripts/create-super-admin.js"
   },

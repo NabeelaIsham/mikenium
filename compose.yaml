@@ -1,0 +1,71 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mikenium
+      POSTGRES_USER: mikenium
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mikenium -d mikenium"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+
+  app:
+    build:
+      context: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://mikenium:${POSTGRES_PASSWORD}@db:5432/mikenium
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env.production}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:?Set BACKUP_ENCRYPTION_KEY in .env.production}
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:?Set SUPER_ADMIN_EMAIL in .env.production}
+      CLIENT_URL: https://${DOMAIN:?Set DOMAIN in .env.production}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      CONTACT_TO_EMAIL: ${CONTACT_TO_EMAIL:-}
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
+    volumes:
+      - uploads_data:/opt/mikenium/server/uploads
+      - backups_data:/opt/mikenium/server/backups
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env.production}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  postgres_data:
+  uploads_data:
+  backups_data:
+  caddy_data:
+  caddy_config:

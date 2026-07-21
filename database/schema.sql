@@ -85,6 +85,15 @@ CREATE TABLE IF NOT EXISTS backup_schedule (
 INSERT INTO backup_schedule(id) VALUES(1) ON CONFLICT(id) DO NOTHING;
 CREATE INDEX IF NOT EXISTS admin_audit_user_idx ON admin_audit_logs(user_id,created_at DESC);
 
+CREATE TABLE IF NOT EXISTS request_rate_limits (
+  scope varchar(80) NOT NULL,
+  identifier_hash char(64) NOT NULL,
+  window_started_at timestamptz NOT NULL DEFAULT now(),
+  request_count integer NOT NULL DEFAULT 1 CHECK (request_count > 0),
+  PRIMARY KEY(scope,identifier_hash)
+);
+CREATE INDEX IF NOT EXISTS request_rate_limits_window_idx ON request_rate_limits(window_started_at);
+
 -- Enforce one platform-level super admin at the database layer.
 CREATE UNIQUE INDEX IF NOT EXISTS one_super_admin ON users ((role)) WHERE role='SUPER_ADMIN';
 

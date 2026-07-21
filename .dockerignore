@@ -1,0 +1,13 @@
+.git
+.agents
+.codex
+node_modules
+client/node_modules
+client/dist
+server/node_modules
+server/.env
+.env.production
+server/uploads/*
+server/backups/*
+tmp
+*.log

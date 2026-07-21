@@ -1,30 +1,23 @@
-import express from 'express'; import cors from 'cors'; import helmet from 'helmet'; import 'dotenv/config'; import { fileURLToPath } from 'url';
-import authRoutes from './routes/auth.js'; import dashboardRoutes from './routes/dashboard.js';
-import userRoutes from './routes/users.js';
-import clientRoutes from './routes/clients.js';
-import projectRoutes from './routes/projects.js';
-import publicProjectRoutes from './routes/public-projects.js';
-import serviceRoutes from './routes/services.js';
-import publicServiceRoutes from './routes/public-services.js';
-import productRoutes from './routes/products.js';
-import publicProductRoutes from './routes/public-products.js';
-import pricingRoutes from './routes/pricing.js';
-import publicPricingRoutes from './routes/public-pricing.js';
-import blogRoutes from './routes/blogs.js';
-import publicBlogRoutes from './routes/public-blogs.js';
-import testimonialRoutes from './routes/testimonials.js';
-import publicTestimonialRoutes from './routes/public-testimonials.js';
-import publicContactRoutes from './routes/public-contact.js';
-import contactMessageRoutes from './routes/contact-messages.js';
-import newsletterRoutes from './routes/newsletter.js';
-import partnerRoutes from './routes/partners.js';
-import publicPartnerRoutes from './routes/public-partners.js';
-import settingRoutes from './routes/settings.js';
-import publicSettingRoutes from './routes/public-settings.js';
-import activityLogRoutes from './routes/activity-logs.js';
-import systemBackupRoutes from './routes/system-backups.js';
-const app=express(); const uploadsPath=fileURLToPath(new URL('./uploads',import.meta.url)); app.set('trust proxy',1); app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL||'http://localhost:5173',credentials:true})); app.use('/uploads',express.static(uploadsPath,{setHeaders:res=>res.setHeader('Cross-Origin-Resource-Policy','cross-origin')})); app.use(express.json({limit:'1mb'}));
-app.get('/api/health',(req,res)=>res.json({status:'ok'})); app.use('/api/auth',authRoutes); app.use('/api/settings',publicSettingRoutes); app.use('/api/projects',publicProjectRoutes); app.use('/api/services',publicServiceRoutes); app.use('/api/products',publicProductRoutes); app.use('/api/pricing',publicPricingRoutes); app.use('/api/blogs',publicBlogRoutes); app.use('/api/testimonials',publicTestimonialRoutes); app.use('/api/partners',publicPartnerRoutes); app.use('/api/contact',publicContactRoutes); app.use('/api/newsletter',newsletterRoutes); app.use('/api/admin/settings',settingRoutes); app.use('/api/admin/dashboard',dashboardRoutes); app.use('/api/admin/users',userRoutes); app.use('/api/admin/clients',clientRoutes); app.use('/api/admin/projects',projectRoutes); app.use('/api/admin/services',serviceRoutes); app.use('/api/admin/products',productRoutes); app.use('/api/admin/pricing',pricingRoutes); app.use('/api/admin/blogs',blogRoutes); app.use('/api/admin/testimonials',testimonialRoutes); app.use('/api/admin/partners',partnerRoutes); app.use('/api/admin/contact-messages',contactMessageRoutes);
-app.use('/api/admin/activity-logs',activityLogRoutes); app.use('/api/admin/system-backups',systemBackupRoutes);
-app.use((err,req,res,next)=>{if(err.type==='entity.too.large')return res.status(413).json({message:'Project image must be 5 MB or smaller'});console.error(err);res.status(500).json({message:'Unexpected server error'});});
-app.listen(process.env.PORT||5000,()=>console.log(`Mikenium API running on port ${process.env.PORT||5000}`));
+import app from './app.js';
+import {pool} from './config/db.js';
+import {env} from './config/env.js';
+
+const server=app.listen(env.port,()=>console.log(`Mikenium API listening on port ${env.port} (${env.nodeEnv})`));
+let shuttingDown=false;
+async function shutdown(signal){
+  if(shuttingDown)return;
+  shuttingDown=true;
+  console.log(`${signal} received; shutting down`);
+  const force=setTimeout(()=>process.exit(1),10000);force.unref();
+  server.close(async error=>{
+    try{await pool.end()}finally{
+      clearTimeout(force);
+      if(error)console.error(error);
+      process.exit(error?1:0);
+    }
+  });
+}
+process.on('SIGTERM',()=>shutdown('SIGTERM'));
+process.on('SIGINT',()=>shutdown('SIGINT'));
+process.on('unhandledRejection',error=>{console.error('Unhandled rejection:',error);shutdown('unhandledRejection')});
+process.on('uncaughtException',error=>{console.error('Uncaught exception:',error);shutdown('uncaughtException')});

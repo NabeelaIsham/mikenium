@@ -15,6 +15,10 @@ PERN super-admin dashboard matching the supplied reference, with a responsive Re
 
 Public website: http://localhost:5173 · Admin dashboard: http://localhost:5173/admin · API: http://localhost:5000
 
+## Production deployment
+
+The repository includes a hardened Docker deployment for a single Namecheap VPS: PostgreSQL, the application, persistent uploads/encrypted backups, and automatic HTTPS through Caddy. Follow [DEPLOYMENT.md](./DEPLOYMENT.md). Do not deploy using the development commands above.
+
 ## Super-admin security model
 
 - The public `/api/auth/login` route rejects accounts with the `SUPER_ADMIN` role.

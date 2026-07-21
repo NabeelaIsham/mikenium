@@ -1,4 +1,4 @@
-const API_URL=(import.meta.env.VITE_API_URL||'http://localhost:5000').replace(/\/$/,'');
+const API_URL=(import.meta.env.VITE_API_URL||(import.meta.env.DEV?'http://localhost:5000':'')).replace(/\/$/,'');
 export async function getPublicProjects(){
   const response=await fetch(`${API_URL}/api/projects`,{cache:'no-store'});
   const data=await response.json().catch(()=>({}));
