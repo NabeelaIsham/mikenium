@@ -13,6 +13,8 @@ import PricingPage from './pages/website/PricingPage';
 import BlogPage from './pages/website/BlogPage';
 import SingleBlogPage from './pages/website/SingleBlogPage';
 import ContactPage from './pages/website/ContactPage';
+import LegalPage from './pages/website/LegalPage';
+import CookieConsent from './components/CookieConsent';
 import AdminLogin from './pages/admin/AdminLogin';
 import { getAdminSession, getContactMessages, getDashboard, logoutAdmin, updateContactMessage } from './services/admin/admin-api';
 import {SiteSettingsProvider} from './context/SiteSettingsContext';
@@ -66,4 +68,4 @@ function AdminGate(){
   if(!state.user)return <AdminLogin onLogin={user=>setState({loading:false,user})}/>;
   return <AdminApp user={state.user} onLogout={signOut}/>;
 }
-export default function App(){const path=window.location.pathname;if(path.startsWith('/admin'))return <AdminGate/>;const page=path.startsWith('/blog/')?<SingleBlogPage/>:path==='/about'||path==='/about/'?<AboutPage/>:path==='/services'||path==='/services/'?<ServicesPage/>:path==='/portfolio'||path==='/portfolio/'?<PortfolioPage/>:path==='/products'||path==='/products/'?<ProductsPage/>:path==='/pricing'||path==='/pricing/'?<PricingPage/>:path==='/blog'||path==='/blog/'?<BlogPage/>:path==='/contact'||path==='/contact/'?<ContactPage/>:<PublicHome/>;return <SiteSettingsProvider>{page}</SiteSettingsProvider>}
+export default function App(){const path=window.location.pathname.replace(/\/$/,'')||'/';if(path.startsWith('/admin'))return <AdminGate/>;const page=path==='/privacy-policy'?<LegalPage type="privacy"/>:path==='/terms-of-service'?<LegalPage type="terms"/>:path==='/cookie-policy'?<LegalPage type="cookies"/>:path.startsWith('/blog/')?<SingleBlogPage/>:path==='/about'?<AboutPage/>:path==='/services'?<ServicesPage/>:path==='/portfolio'?<PortfolioPage/>:path==='/products'?<ProductsPage/>:path==='/pricing'?<PricingPage/>:path==='/blog'?<BlogPage/>:path==='/contact'?<ContactPage/>:<PublicHome/>;return <SiteSettingsProvider><>{page}<CookieConsent/></></SiteSettingsProvider>}

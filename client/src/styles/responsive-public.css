@@ -21,6 +21,13 @@ body {
   min-width: 0;
 }
 
+/* The admin stylesheet offsets every bare <main> for its sidebar. Public
+   routes share the bundle, so explicitly keep their content viewport-wide. */
+.public-site > main {
+  width: 100%;
+  margin-left: 0;
+}
+
 .public-site img,
 .public-site svg,
 .public-site video,
