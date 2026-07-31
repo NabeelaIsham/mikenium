@@ -6,6 +6,8 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { pool } from '../config/db.js';
 import { requireSuperAdmin } from '../middleware/auth.js';
+import {optionalPublicUrl} from '../utils/safe-url.js';
+import {validateImageUpload} from '../utils/image-upload.js';
 
 const router=Router();
 router.use(requireSuperAdmin);
@@ -28,8 +30,8 @@ const projectSchema=z.object({
   deadline:dateField.optional(),
   result:z.string().trim().max(160).default(''),
   tags:z.array(z.string().trim().min(1).max(40)).max(8).default([]),
-  imageUrl:z.union([z.string().trim().url().max(2000),z.literal('')]).default(''),
-  projectUrl:z.union([z.string().trim().url().max(2000),z.literal('')]).default(''),
+  imageUrl:optionalPublicUrl(),
+  projectUrl:optionalPublicUrl(),
   theme:z.enum(themes).default('analytics'),
   published:z.boolean().default(false),
   featured:z.boolean().default(false)
@@ -42,7 +44,7 @@ function databaseError(error,res){if(error.code==='23505')return res.status(409)
 const selectSql=`SELECT p.*,c.company_name AS client_name FROM projects p LEFT JOIN clients c ON c.id=p.client_id`;
 
 router.post('/image-upload',express.raw({type:Object.keys(imageTypes),limit:'5mb'}),async(req,res)=>{
-  const extension=imageTypes[req.get('content-type')];
+  const extension=validateImageUpload(req.body,req.get('content-type'),imageTypes);
   if(!extension||!Buffer.isBuffer(req.body)||!req.body.length)return res.status(415).json({message:'Select a JPG, PNG, WebP, or GIF image'});
   await mkdir(projectUploads,{recursive:true});
   const filename=`${randomUUID()}.${extension}`;

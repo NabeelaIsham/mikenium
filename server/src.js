@@ -3,6 +3,10 @@ import {pool} from './config/db.js';
 import {env} from './config/env.js';
 
 const server=app.listen(env.port,()=>console.log(`Mikenium API listening on port ${env.port} (${env.nodeEnv})`));
+server.requestTimeout=60000;
+server.headersTimeout=15000;
+server.keepAliveTimeout=5000;
+server.maxRequestsPerSocket=1000;
 let shuttingDown=false;
 async function shutdown(signal){
   if(shuttingDown)return;

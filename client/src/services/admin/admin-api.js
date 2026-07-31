@@ -13,7 +13,7 @@ export async function adminRequest(path,options={}){
 }
 
 export const getAdminSession=()=>adminRequest('/api/auth/super-admin/session');
-export const loginAdmin=(email,password)=>adminRequest('/api/auth/super-admin/login',{method:'POST',body:JSON.stringify({email,password})});
+export const loginAdmin=(email,password,code)=>adminRequest('/api/auth/super-admin/login',{method:'POST',body:JSON.stringify({email,password,code})});
 export const logoutAdmin=()=>adminRequest('/api/auth/super-admin/logout',{method:'POST'});
 export const getDashboard=()=>adminRequest('/api/admin/dashboard');
 export const getUsers=(filters={})=>{const query=new URLSearchParams(Object.entries(filters).filter(([,value])=>value!==undefined&&value!==''));return adminRequest(`/api/admin/users${query.size?`?${query}`:''}`)};

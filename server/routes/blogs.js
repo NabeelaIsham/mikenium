@@ -6,6 +6,8 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { pool } from '../config/db.js';
 import { requireSuperAdmin } from '../middleware/auth.js';
+import {optionalPublicUrl,requiredPublicUrl} from '../utils/safe-url.js';
+import {validateImageUpload} from '../utils/image-upload.js';
 
 const router=Router();
 router.use(requireSuperAdmin);
@@ -13,7 +15,7 @@ router.param('id',(req,res,next,id)=>z.string().uuid().safeParse(id).success?nex
 const imageTypes={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'};
 const uploadsPath=fileURLToPath(new URL('../uploads/blogs/',import.meta.url));
 const slugify=value=>value.toLowerCase().trim().replace(/^\/+|\/+$/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,210);
-const url=z.string().trim().max(2000).refine(value=>!value||value.startsWith('/')||URL.canParse(value),'Use a full image URL or a local path starting with /').default('');
+const url=optionalPublicUrl();
 const text=z.string().trim().max(10000).default('');
 const blockSchema=z.discriminatedUnion('type',[
   z.object({id:z.string().max(80),type:z.literal('heading'),eyebrow:z.string().max(100).default(''),title:z.string().min(2).max(240)}),
@@ -22,7 +24,7 @@ const blockSchema=z.discriminatedUnion('type',[
   z.object({id:z.string().max(80),type:z.literal('list'),title:z.string().max(200).default(''),items:z.array(z.string().min(1).max(1000)).min(1).max(20)}),
   z.object({id:z.string().max(80),type:z.literal('image'),url:url,alt:z.string().max(240).default(''),caption:z.string().max(300).default('')}),
   z.object({id:z.string().max(80),type:z.literal('featureGrid'),title:z.string().max(200).default(''),items:z.array(z.object({title:z.string().min(1).max(140),text:z.string().max(1000)})).min(1).max(8)}),
-  z.object({id:z.string().max(80),type:z.literal('callout'),eyebrow:z.string().max(100).default(''),title:z.string().min(1).max(200),text:z.string().max(1000).default(''),buttonLabel:z.string().max(80).default('Start a project'),buttonUrl:z.string().max(2000).default('/contact')})
+  z.object({id:z.string().max(80),type:z.literal('callout'),eyebrow:z.string().max(100).default(''),title:z.string().min(1).max(200),text:z.string().max(1000).default(''),buttonLabel:z.string().max(80).default('Start a project'),buttonUrl:requiredPublicUrl().default('/contact')})
 ]);
 const schema=z.object({
   title:z.string().trim().min(5).max(240),
@@ -55,7 +57,7 @@ function validationError(error){
 }
 
 router.post('/image-upload',express.raw({type:Object.keys(imageTypes),limit:'5mb'}),async(req,res)=>{
-  const extension=imageTypes[req.get('content-type')];
+  const extension=validateImageUpload(req.body,req.get('content-type'),imageTypes);
   if(!extension||!Buffer.isBuffer(req.body)||!req.body.length)return res.status(415).json({message:'Select a JPG, PNG, WebP, or GIF image'});
   await mkdir(uploadsPath,{recursive:true});const filename=`${randomUUID()}.${extension}`;
   await writeFile(path.join(uploadsPath,filename),req.body,{flag:'wx'});

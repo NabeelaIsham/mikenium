@@ -70,7 +70,8 @@ export async function restoreBackup(record,userId){
     await client.query('BEGIN');
     for(const table of [...tables].reverse())await client.query(`DELETE FROM ${table}`);
     for(const table of tables){
-      const rows=payload.database[table]||[];
+      let rows=payload.database[table]||[];
+      if(table==='users')rows=rows.map(row=>({...row,last_totp_counter:row.last_totp_counter??-1}));
       if(rows.length)await client.query(`INSERT INTO ${table} SELECT * FROM json_populate_recordset(NULL::${table},$1::json)`,[JSON.stringify(rows)]);
     }
     await client.query(`SELECT setval(pg_get_serial_sequence('admin_audit_logs','id'),COALESCE((SELECT max(id) FROM admin_audit_logs),1),true)`);

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validateEnvironment} from '../config/env.js';
 
-const valid={NODE_ENV:'production',DATABASE_URL:'postgresql://user:pass@db/app',JWT_SECRET:'a'.repeat(64),BACKUP_ENCRYPTION_KEY:'b'.repeat(64),SUPER_ADMIN_EMAIL:'admin@example.com',CLIENT_URL:'https://example.com'};
+const valid={NODE_ENV:'production',DATABASE_URL:'postgresql://user:pass@db/app',JWT_SECRET:'a'.repeat(64),BACKUP_ENCRYPTION_KEY:'b'.repeat(64),SUPER_ADMIN_EMAIL:'admin@example.com',SUPER_ADMIN_TOTP_SECRET:'JBSWY3DPEHPK3PXP',CLIENT_URL:'https://example.com'};
 
 test('accepts a complete production environment',()=>{
   const result=validateEnvironment(valid);
@@ -20,4 +20,10 @@ test('rejects non-HTTPS production origins',()=>{
 
 test('rejects malformed backup keys',()=>{
   assert.throws(()=>validateEnvironment({...valid,BACKUP_ENCRYPTION_KEY:'short'}),/BACKUP_ENCRYPTION_KEY/);
+});
+
+test('requires a valid production MFA secret',()=>{
+  assert.throws(()=>validateEnvironment({...valid,SUPER_ADMIN_TOTP_SECRET:''}),/SUPER_ADMIN_TOTP_SECRET/);
+  assert.throws(()=>validateEnvironment({...valid,SUPER_ADMIN_TOTP_SECRET:'not-base32'}),/SUPER_ADMIN_TOTP_SECRET/);
+  assert.throws(()=>validateEnvironment({...valid,SUPER_ADMIN_TOTP_SECRET:'REPLACEWITHABASE32SECRET'}),/SUPER_ADMIN_TOTP_SECRET/);
 });

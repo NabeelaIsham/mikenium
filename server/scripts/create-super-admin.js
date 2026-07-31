@@ -9,8 +9,9 @@ try {
   const hash=await bcrypt.hash(password,12);
   await pool.query('BEGIN');
   const {rows}=await pool.query("SELECT id FROM users WHERE role='SUPER_ADMIN' FOR UPDATE");
-  if(rows[0]) await pool.query("UPDATE users SET name=$1,email=lower($2),password_hash=$3,active=true,updated_at=now() WHERE id=$4",[name,email,hash,rows[0].id]);
+  if(rows[0]) await pool.query("UPDATE users SET name=$1,email=lower($2),password_hash=$3,active=true,last_totp_counter=-1,updated_at=now() WHERE id=$4",[name,email,hash,rows[0].id]);
   else await pool.query("INSERT INTO users(name,email,password_hash,role) VALUES($1,lower($2),$3,'SUPER_ADMIN')",[name,email,hash]);
+  await pool.query("DELETE FROM admin_sessions WHERE user_id IN (SELECT id FROM users WHERE role='SUPER_ADMIN')");
   await pool.query('COMMIT');
   console.log(`Company super admin provisioned: ${email}`);
 }

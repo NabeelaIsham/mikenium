@@ -34,6 +34,7 @@ export default function ContactPage(){
   const [sending,setSending]=useState(false);
   const [formError,setFormError]=useState('');
   useEffect(()=>{document.title='Contact Mikenium | Let’s Build What’s Next';const observer=new IntersectionObserver(entries=>entries.forEach(entry=>entry.isIntersecting&&entry.target.classList.add('is-visible')),{threshold:.12});document.querySelectorAll('.contact-page .reveal').forEach(el=>observer.observe(el));return()=>observer.disconnect()},[]);
+  useEffect(()=>{if(window.location.hash==='#contact-form')requestAnimationFrame(()=>document.getElementById('contact-form')?.scrollIntoView({block:'start'}))},[]);
   const submit=async e=>{
     e.preventDefault();setSending(true);setSent(false);setFormError('');
     const form=e.currentTarget;

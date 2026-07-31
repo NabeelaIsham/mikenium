@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { pool } from '../config/db.js';
 import { requireSuperAdmin } from '../middleware/auth.js';
+import {requiredPublicUrl} from '../utils/safe-url.js';
 
 const router=Router();
 router.use(requireSuperAdmin);
@@ -21,7 +22,7 @@ const baseSchema=z.object({
   billingSuffix:z.string().trim().min(1).max(80).default('/ month'),
   features:z.array(z.string().trim().min(1).max(120)).max(15).default([]),
   ctaLabel:z.string().trim().min(1).max(80).default('Get started'),
-  ctaUrl:z.string().trim().min(1).max(2000).default('/contact'),
+  ctaUrl:requiredPublicUrl().default('/contact'),
   icon:z.enum(['rocket','zap','chart','shield','building','gem','star','briefcase']).default('rocket'),
   custom:z.boolean().default(false),
   popular:z.boolean().default(false),

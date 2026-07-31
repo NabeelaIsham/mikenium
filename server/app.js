@@ -38,7 +38,7 @@ const uploadsPath=fileURLToPath(new URL('./uploads',import.meta.url));
 const staticPath=env.staticDir?path.resolve(env.staticDir):'';
 app.disable('x-powered-by');
 app.set('trust proxy',env.isProduction?1:false);
-app.use((req,res,next)=>{req.id=req.get('x-request-id')||randomUUID();res.set('X-Request-Id',req.id);next()});
+app.use((req,res,next)=>{const supplied=req.get('x-request-id')||'';req.id=/^[a-zA-Z0-9._-]{1,128}$/.test(supplied)?supplied:randomUUID();res.set('X-Request-Id',req.id);next()});
 app.use(helmet({
   crossOriginResourcePolicy:{policy:'same-site'},
   contentSecurityPolicy:{directives:{imgSrc:["'self'",'data:','https:'],upgradeInsecureRequests:env.isProduction?[]:null}}
@@ -65,7 +65,9 @@ app.use('/api/blogs',publicBlogRoutes);
 app.use('/api/testimonials',publicTestimonialRoutes);
 app.use('/api/partners',publicPartnerRoutes);
 app.use('/api/contact',rateLimit({scope:'contact',limit:5,windowMs:15*60*1000}),publicContactRoutes);
-app.use('/api/newsletter',rateLimit({scope:'newsletter',limit:5,windowMs:60*60*1000,key:req=>`${req.ip}:${req.body?.email||''}`}),newsletterRoutes);
+app.post('/api/newsletter',rateLimit({scope:'newsletter-ip',limit:20,windowMs:60*60*1000}),rateLimit({scope:'newsletter-email',limit:3,windowMs:60*60*1000,key:req=>String(req.body?.email||'').trim().toLowerCase()}));
+app.use('/api/newsletter',newsletterRoutes);
+app.use('/api/admin',(req,res,next)=>{res.set({'Cache-Control':'no-store','Pragma':'no-cache'});next()});
 app.use('/api/admin/settings',settingRoutes);
 app.use('/api/admin/dashboard',dashboardRoutes);
 app.use('/api/admin/users',userRoutes);

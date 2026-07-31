@@ -44,7 +44,20 @@ CREATE TABLE IF NOT EXISTS users (
 ALTER TABLE users ADD COLUMN IF NOT EXISTS username varchar(80);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified boolean NOT NULL DEFAULT false;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at timestamptz;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_totp_counter bigint NOT NULL DEFAULT -1;
 CREATE UNIQUE INDEX IF NOT EXISTS users_username_unique_idx ON users (lower(username)) WHERE username IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS admin_sessions (
+  id uuid PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expires_at timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  last_seen_at timestamptz NOT NULL DEFAULT now(),
+  ip_address inet,
+  user_agent text NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS admin_sessions_user_idx ON admin_sessions(user_id);
+CREATE INDEX IF NOT EXISTS admin_sessions_expiry_idx ON admin_sessions(expires_at);
 
 CREATE TABLE IF NOT EXISTS admin_audit_logs (
   id bigserial PRIMARY KEY,
@@ -318,15 +331,21 @@ CREATE TABLE IF NOT EXISTS contact_message_replies (
 CREATE TABLE IF NOT EXISTS newsletter_subscribers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   email varchar(255) UNIQUE NOT NULL,
-  status varchar(20) NOT NULL DEFAULT 'ACTIVE',
+  status varchar(20) NOT NULL DEFAULT 'PENDING',
   source varchar(80) NOT NULL DEFAULT 'Homepage',
   confirmation_status varchar(20) NOT NULL DEFAULT 'PENDING',
   confirmation_error text NOT NULL DEFAULT '',
   subscribed_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT newsletter_subscribers_status_check CHECK (status IN ('ACTIVE','UNSUBSCRIBED')),
+  CONSTRAINT newsletter_subscribers_status_check CHECK (status IN ('PENDING','ACTIVE','UNSUBSCRIBED')),
   CONSTRAINT newsletter_subscribers_confirmation_check CHECK (confirmation_status IN ('PENDING','SENT','FAILED'))
 );
+ALTER TABLE newsletter_subscribers ALTER COLUMN status SET DEFAULT 'PENDING';
+ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS confirmation_token_hash char(64);
+ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS confirmation_expires_at timestamptz;
+ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS confirmed_at timestamptz;
+ALTER TABLE newsletter_subscribers DROP CONSTRAINT IF EXISTS newsletter_subscribers_status_check;
+ALTER TABLE newsletter_subscribers ADD CONSTRAINT newsletter_subscribers_status_check CHECK (status IN ('PENDING','ACTIVE','UNSUBSCRIBED'));
 
 CREATE TABLE IF NOT EXISTS partners (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

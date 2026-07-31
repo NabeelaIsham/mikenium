@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-const productionRequired=['DATABASE_URL','JWT_SECRET','BACKUP_ENCRYPTION_KEY','SUPER_ADMIN_EMAIL'];
+const productionRequired=['DATABASE_URL','JWT_SECRET','BACKUP_ENCRYPTION_KEY','SUPER_ADMIN_EMAIL','SUPER_ADMIN_TOTP_SECRET'];
 
 export function validateEnvironment(source=process.env){
   const isProduction=source.NODE_ENV==='production';
@@ -16,6 +16,9 @@ export function validateEnvironment(source=process.env){
     try{validBase64=Buffer.from(value,'base64').length===32}catch{}
     if(!validHex&&!validBase64)throw new Error('BACKUP_ENCRYPTION_KEY must be 32 bytes encoded as 64 hex characters or base64');
   }
+  const totpSecret=(source.SUPER_ADMIN_TOTP_SECRET||'').toUpperCase().replace(/[\s=-]/g,'');
+  if(totpSecret&&!/^[A-Z2-7]{16,128}$/.test(totpSecret))throw new Error('SUPER_ADMIN_TOTP_SECRET must be a base32 secret containing at least 16 characters');
+  if(isProduction&&totpSecret.toLowerCase().includes('replace'))throw new Error('SUPER_ADMIN_TOTP_SECRET must not use the example value');
   return {
     nodeEnv:source.NODE_ENV||'development',
     isProduction,
@@ -24,7 +27,8 @@ export function validateEnvironment(source=process.env){
     jwtSecret:source.JWT_SECRET,
     clientOrigins:(source.CLIENT_URL||(isProduction?'':'http://localhost:5173')).split(',').map(value=>value.trim()).filter(Boolean),
     staticDir:source.STATIC_DIR||'',
-    backupEncryptionKey:source.BACKUP_ENCRYPTION_KEY||''
+    backupEncryptionKey:source.BACKUP_ENCRYPTION_KEY||'',
+    superAdminTotpSecret:totpSecret
   };
 }
 

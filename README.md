@@ -5,7 +5,7 @@ PERN super-admin dashboard matching the supplied reference, with a responsive Re
 ## Setup
 
 1. Create the PostgreSQL database: `createdb -U postgres mikenium`
-2. Copy `server/.env.example` to `server/.env`, replace the JWT secret, and keep `SUPER_ADMIN_EMAIL=info@mikenium.com`.
+2. Copy `server/.env.example` to `server/.env`, replace the JWT secret, and keep `SUPER_ADMIN_EMAIL=info@mikenium.com`. Run `npm run mfa:generate --prefix server -- info@mikenium.com`, put the generated base32 value in `SUPER_ADMIN_TOTP_SECRET`, and add the displayed authenticator URI to your authenticator or password-manager app.
 3. Install packages: `npm install` then `npm run install:all`
 4. Initialize tables: `npm run db:init --prefix server`
 5. Provision the company-owned account (there is deliberately no website registration):

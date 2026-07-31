@@ -56,13 +56,13 @@ export async function sendContactReply({to,name,subject,body}){
   });
 }
 
-export async function sendNewsletterWelcome(email){
+export async function sendNewsletterConfirmation(email,confirmationUrl){
   return getTransporter().sendMail({
     from:`Mikenium Insights <${user}>`,
     to:email,
     replyTo:user,
-    subject:'Welcome to Mikenium Insights',
-    text:'You are subscribed to Mikenium Insights. We will send practical updates about software, design, AI, and digital growth.',
-    html:'<div style="font-family:Arial,sans-serif;color:#17233a;line-height:1.65"><h2 style="color:#0874e8">Welcome to Mikenium Insights</h2><p>Your subscription is confirmed.</p><p>We’ll share practical updates about software, design, AI, and digital growth.</p><p>Regards,<br><strong>Mikenium Team</strong></p></div>'
+    subject:'Confirm your Mikenium Insights subscription',
+    text:`Confirm your subscription by opening this link within one hour:\n\n${confirmationUrl}\n\nIf you did not request this, ignore this email.`,
+    html:`<div style="font-family:Arial,sans-serif;color:#17233a;line-height:1.65"><h2 style="color:#0874e8">Confirm your subscription</h2><p>Open the secure link below within one hour to subscribe to Mikenium Insights.</p><p><a href="${escapeHtml(confirmationUrl)}">Confirm subscription</a></p><p>If you did not request this, you can safely ignore this email.</p></div>`
   });
 }

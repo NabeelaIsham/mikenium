@@ -6,6 +6,8 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { pool } from '../config/db.js';
 import { requireSuperAdmin } from '../middleware/auth.js';
+import {optionalPublicUrl} from '../utils/safe-url.js';
+import {validateImageUpload} from '../utils/image-upload.js';
 
 const router=Router();
 router.use(requireSuperAdmin);
@@ -23,8 +25,8 @@ const productSchema=z.object({
   platform:z.string().trim().min(2).max(100),
   features:z.array(z.string().trim().min(1).max(100)).max(10).default([]),
   techStack:z.array(z.string().trim().min(1).max(50)).max(12).default([]),
-  imageUrl:z.union([z.string().trim().url().max(2000),z.literal('')]).default(''),
-  productUrl:z.union([z.string().trim().url().max(2000),z.literal('')]).default(''),
+  imageUrl:optionalPublicUrl(),
+  productUrl:optionalPublicUrl(),
   status:z.enum(statuses).default('PUBLISHED'),
   featured:z.boolean().default(false),
   order:z.coerce.number().int().min(0).max(999).default(0)
@@ -35,7 +37,7 @@ const serialize=row=>({id:row.id,name:row.name,slug:row.slug,description:row.des
 const audit=(userId,action,ip,metadata)=>pool.query('INSERT INTO admin_audit_logs(user_id,action,ip_address,metadata) VALUES($1,$2,$3,$4)',[userId,action,ip,JSON.stringify(metadata)]);
 
 router.post('/image-upload',express.raw({type:Object.keys(imageTypes),limit:'5mb'}),async(req,res)=>{
-  const extension=imageTypes[req.get('content-type')];
+  const extension=validateImageUpload(req.body,req.get('content-type'),imageTypes);
   if(!extension||!Buffer.isBuffer(req.body)||!req.body.length)return res.status(415).json({message:'Select a JPG, PNG, WebP, or GIF image'});
   await mkdir(uploadsPath,{recursive:true});
   const filename=`${randomUUID()}.${extension}`;

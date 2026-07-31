@@ -9,7 +9,7 @@ const process = [[I.Search,'Discover','We unpack the business problem, users, ri
 
 function Logo(){return <a className="public-logo" href="/" aria-label="Mikenium home"><img src={companyContact.logoUrl} alt={companyContact.logoAlt}/></a>}
 function ArrowLink({children,href='/#contact',ghost=false}){return <a className={'about-button'+(ghost?' ghost':'')} href={href}>{children}<I.ArrowUpRight/></a>}
-function SiteButton({children,href='/#contact'}){return <a className="site-button" href={href}>{children}<I.ArrowRight/></a>}
+function SiteButton({children,href='/contact#contact-form'}){return <a className="site-button" href={href}>{children}<I.ArrowRight/></a>}
 
 export default function AboutPage(){
   const [menu,setMenu]=useState(false);

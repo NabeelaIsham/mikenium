@@ -17,10 +17,13 @@ cp .env.production.example .env.production
 openssl rand -hex 32
 openssl rand -hex 32
 openssl rand -hex 32
+openssl rand 20 | base32 | tr -d '=\n'
 chmod 600 .env.production
 ```
 
-Put the first generated value in `POSTGRES_PASSWORD`, the second in `JWT_SECRET`, and the third in `BACKUP_ENCRYPTION_KEY`. Hex values avoid URL-escaping problems in the PostgreSQL connection string. Set `DOMAIN` to the hostname whose DNS record points to the VPS, without `https://`. Configure the SMTP values with an app-specific mailbox password.
+Put the first generated value in `POSTGRES_PASSWORD`, the second in `JWT_SECRET`, the third in `BACKUP_ENCRYPTION_KEY`, and the base32 value in `SUPER_ADMIN_TOTP_SECRET`. Hex values avoid URL-escaping problems in the PostgreSQL connection string. Set `DOMAIN` to the hostname whose DNS record points to the VPS, without `https://`. Configure the SMTP values with an app-specific mailbox password.
+
+Before starting production, add `SUPER_ADMIN_TOTP_SECRET` to a TOTP authenticator such as 1Password, Google Authenticator, Microsoft Authenticator, or Authy. Use account name `SUPER_ADMIN_EMAIL`, issuer `Mikenium`, a 30-second period, SHA-1, and six digits. Store the MFA secret in your password manager; losing both the authenticator and this secret will require replacing the environment value and reprovisioning the admin account.
 
 Never rotate `BACKUP_ENCRYPTION_KEY` until all backups encrypted with the old key have expired or been safely re-encrypted. Losing this key makes those backups unrecoverable.
 
@@ -77,6 +80,7 @@ Before updates, create and export a backup. Retain the previous Git revision so 
 - Replace all example domains, mailbox values, and secrets.
 - Confirm DNS and automatic HTTPS renewal.
 - Configure VPS security updates, SSH hardening, firewalling, disk monitoring, and external uptime/error alerts.
+- Restrict `/api/auth/super-admin/*` and `/api/admin/*` through a VPN or Caddy IP allowlist whenever the administrator has a stable trusted network.
 - Configure off-site encrypted backups and complete a restore drill.
 - Publish reviewed Privacy Policy, Terms of Service, and Cookie Policy pages.
 - Verify every public statistic, availability statement, price, address, and social link.

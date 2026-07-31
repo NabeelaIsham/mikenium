@@ -6,18 +6,19 @@ import {fileURLToPath} from 'url';
 import path from 'path';
 import {pool} from '../config/db.js';
 import {requireSuperAdmin} from '../middleware/auth.js';
+import {optionalPublicUrl} from '../utils/safe-url.js';
+import {validateImageUpload} from '../utils/image-upload.js';
 
 const router=Router();
 router.use(requireSuperAdmin);
 router.param('id',(req,res,next,id)=>z.string().uuid().safeParse(id).success?next():res.status(400).json({message:'Invalid partner ID'}));
 const imageTypes={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
 const uploadsPath=fileURLToPath(new URL('../uploads/partners/',import.meta.url));
-const optionalUrl=z.string().trim().max(2000).refine(value=>!value||value.startsWith('/')||URL.canParse(value),'Use a full URL or a local path starting with /').default('');
 const schema=z.object({
   name:z.string().trim().min(2).max(160),
   descriptor:z.string().trim().max(120).default(''),
-  websiteUrl:optionalUrl,
-  logoUrl:optionalUrl,
+  websiteUrl:optionalPublicUrl(),
+  logoUrl:optionalPublicUrl(),
   icon:z.enum(['building','layers','cloud','data','network','hexagon','badge','globe','briefcase','handshake']).default('building'),
   status:z.enum(['PUBLISHED','DRAFT','INACTIVE']).default('PUBLISHED'),
   order:z.coerce.number().int().min(0).max(999).default(0)
@@ -27,7 +28,7 @@ const serialize=row=>({id:row.id,name:row.name,descriptor:row.descriptor,website
 const audit=(userId,action,ip,metadata)=>pool.query('INSERT INTO admin_audit_logs(user_id,action,ip_address,metadata) VALUES($1,$2,$3,$4)',[userId,action,ip,JSON.stringify(metadata)]);
 
 router.post('/logo-upload',express.raw({type:Object.keys(imageTypes),limit:'3mb'}),async(req,res)=>{
-  const extension=imageTypes[req.get('content-type')];
+  const extension=validateImageUpload(req.body,req.get('content-type'),imageTypes);
   if(!extension||!Buffer.isBuffer(req.body)||!req.body.length)return res.status(415).json({message:'Select a JPG, PNG, or WebP logo'});
   await mkdir(uploadsPath,{recursive:true});
   const filename=`${randomUUID()}.${extension}`;
