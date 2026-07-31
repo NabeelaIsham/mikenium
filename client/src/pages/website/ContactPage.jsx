@@ -12,6 +12,7 @@ const getChannels = () => [
   [I.CalendarDays,'Book a meeting','30-minute discovery call','Choose a time that works for you','#contact-form','meeting']
 ];
 const reasons = [[I.Fingerprint,'Built around you','Solutions shaped around your goals, users, and workflow.'],[I.TimerReset,'Momentum, weekly','Clear progress, visible decisions, and reliable delivery.'],[I.ShieldCheck,'Secure by design','Quality and security considered at every layer.'],[I.Handshake,'A lasting partner','We stay invested well beyond the first release.']];
+const serviceOptions = ['Custom Software Development','Web Development','Mobile App Development','UI/UX Design','E-Commerce Development','Cloud & DevOps Solutions','SEO & Digital Marketing','AI Solutions & Automation','Website Maintenance & Support','IT Consulting','API Development & Integration','Other (Please Specify)'];
 
 function Logo(){return <a className="public-logo" href="/" aria-label="Mikenium home"><img src={companyContact.logoUrl} alt={companyContact.logoAlt}/></a>}
 function SiteButton({children,href='/contact'}){return <a className="site-button" href={href}>{children}<I.ArrowRight/></a>}
@@ -72,7 +73,7 @@ export default function ContactPage(){
             <label><span>Work email *</span><div><I.AtSign/><input name="email" type="email" placeholder="you@company.com" required/></div></label>
             <label><span>Company</span><div><I.Building2/><input name="company" placeholder="Your company or team"/></div></label>
             <label><span>Phone</span><div><I.Phone/><input name="phone" type="tel" placeholder="+94 77 123 4567"/></div></label>
-            <label><span>What can we help with? *</span><div><I.Shapes/><select name="service" defaultValue="" required><option value="" disabled>Select a service</option><option>Web development</option><option>Mobile application</option><option>UI/UX design</option><option>Cloud & DevOps</option><option>Product strategy</option><option>Something else</option></select><I.ChevronDown className="select-arrow"/></div></label>
+            <label><span>What can we help with? *</span><div><I.Shapes/><select name="service" defaultValue="" required><option value="" disabled>Select a service</option>{serviceOptions.map(service=><option key={service}>{service}</option>)}</select><I.ChevronDown className="select-arrow"/></div></label>
             <label className="full"><span>Tell us about your idea *</span><div className="textarea-wrap"><I.PencilLine/><textarea name="message" placeholder="The problem, the vision, the timeline — share whatever you know so far..." required/></div></label>
             <input className="contact-honeypot" name="website" tabIndex="-1" autoComplete="off" aria-hidden="true"/>
             <div className="form-bottom"><span><I.ShieldCheck/> Your information is private and never shared.</span><button type="submit" disabled={sending}>{sending?<><I.LoaderCircle className="spin"/> Sending...</>:<>Send your message <I.Send/></>}</button></div>
