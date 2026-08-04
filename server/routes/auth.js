@@ -5,27 +5,20 @@ import {randomUUID} from 'crypto';
 import { z } from 'zod';
 import { pool } from '../config/db.js';
 import { requireSuperAdmin } from '../middleware/auth.js';
-import {consumeRateLimit,rateLimit} from '../middleware/rate-limit.js';
+import {consumeRateLimit} from '../middleware/rate-limit.js';
 import {env} from '../config/env.js';
 import {findTotpCounter} from '../services/totp.js';
+import {requireTrustedBrowserOrigin} from '../middleware/browser-origin.js';
 const router=Router();
 
 const loginSchema=z.object({email:z.string().trim().email().max(255),password:z.string().min(1).max(200),code:z.string().trim().regex(/^\d{6}$/)});
-const cookieOptions={httpOnly:true,sameSite:'strict',secure:env.isProduction,path:'/'};
+const cookieOptions={httpOnly:true,sameSite:'strict',secure:env.isProduction,path:'/',priority:'high'};
 const sessionCookie=env.isProduction?'__Host-admin_session':'admin_session';
 const normalizeEmail=value=>String(value||'').trim().toLowerCase();
 async function getSecuritySettings(){const {rows}=await pool.query('SELECT security FROM site_settings WHERE id=1');return {sessionMinutes:480,maxLoginAttempts:5,...rows[0]?.security}}
 const logFailedLogin=(email,ip,reason)=>pool.query('INSERT INTO admin_audit_logs(action,ip_address,metadata) VALUES($1,$2,$3)',['SUPER_ADMIN_LOGIN_FAILED',ip,JSON.stringify({description:'Failed super admin login attempt',attemptedEmail:String(email||'').slice(0,255),reason})]);
 router.use((req,res,next)=>{res.set('Cache-Control','no-store');next()});
-
-// Public website authentication can never issue a SUPER_ADMIN session.
-router.post('/login',rateLimit({scope:'user-login-ip',limit:30,windowMs:15*60*1000}),rateLimit({scope:'user-login-account',limit:10,windowMs:15*60*1000,key:req=>normalizeEmail(req.body?.email)}),async(req,res)=>{
-  const {email,password}=req.body||{};
-  const {rows}=await pool.query('SELECT * FROM users WHERE lower(email)=lower($1) AND active=true',[email||'']);
-  const user=rows[0];
-  if(!user || user.role==='SUPER_ADMIN' || !(await bcrypt.compare(password||'',user.password_hash))) return res.status(401).json({message:'Invalid credentials'});
-  res.json({message:'Login successful',user:{id:user.id,email:user.email,role:user.role}});
-});
+router.use('/super-admin',requireTrustedBrowserOrigin);
 
 // Browser login for the single database-provisioned super-admin account.
 router.post('/super-admin/login',async(req,res)=>{
@@ -54,9 +47,9 @@ router.post('/super-admin/login',async(req,res)=>{
   const sessionId=randomUUID();const expiresAt=new Date(Date.now()+security.sessionMinutes*60*1000);
   await pool.query('DELETE FROM admin_sessions WHERE expires_at<=now()');
   await pool.query('INSERT INTO admin_sessions(id,user_id,expires_at,ip_address,user_agent) VALUES($1,$2,$3,$4,$5)',[sessionId,user.id,expiresAt,req.ip,(req.get('user-agent')||'').slice(0,1000)]);
-  const token=jwt.sign({sub:user.id,email:user.email,role:user.role},env.jwtSecret,{expiresIn,algorithm:'HS256',jwtid:sessionId});
+  const token=jwt.sign({sub:user.id,email:user.email,role:user.role},env.jwtSecret,{expiresIn,algorithm:'HS256',jwtid:sessionId,issuer:'mikenium',audience:'mikenium-admin'});
   await pool.query('INSERT INTO admin_audit_logs (user_id,action,ip_address) VALUES ($1,$2,$3)',[user.id,'SUPER_ADMIN_LOGIN',req.ip]);
-  res.cookie(sessionCookie,token,cookieOptions).json({user:{id:user.id,name:user.name,email:user.email,role:user.role},expiresIn});
+  res.cookie(sessionCookie,token,{...cookieOptions,maxAge:security.sessionMinutes*60*1000}).json({user:{id:user.id,name:user.name,email:user.email,role:user.role},expiresIn});
 });
 
 router.get('/super-admin/session',requireSuperAdmin,async(req,res)=>{

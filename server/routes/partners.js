@@ -33,7 +33,7 @@ router.post('/logo-upload',express.raw({type:Object.keys(imageTypes),limit:'3mb'
   await mkdir(uploadsPath,{recursive:true});
   const filename=`${randomUUID()}.${extension}`;
   await writeFile(path.join(uploadsPath,filename),req.body,{flag:'wx'});
-  res.status(201).json({logoUrl:`${req.protocol}://${req.get('host')}/uploads/partners/${filename}`});
+  res.status(201).json({logoUrl:`/uploads/partners/${filename}`});
 });
 router.get('/',async(req,res)=>{
   const [records,stats]=await Promise.all([

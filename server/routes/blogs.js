@@ -61,7 +61,7 @@ router.post('/image-upload',express.raw({type:Object.keys(imageTypes),limit:'5mb
   if(!extension||!Buffer.isBuffer(req.body)||!req.body.length)return res.status(415).json({message:'Select a JPG, PNG, WebP, or GIF image'});
   await mkdir(uploadsPath,{recursive:true});const filename=`${randomUUID()}.${extension}`;
   await writeFile(path.join(uploadsPath,filename),req.body,{flag:'wx'});
-  res.status(201).json({imageUrl:`${req.protocol}://${req.get('host')}/uploads/blogs/${filename}`});
+  res.status(201).json({imageUrl:`/uploads/blogs/${filename}`});
 });
 router.get('/',async(req,res)=>{const [records,stats]=await Promise.all([pool.query('SELECT * FROM blog_posts ORDER BY created_at DESC'),pool.query(`SELECT count(*)::int total,count(*) FILTER(WHERE status='PUBLISHED')::int published,count(*) FILTER(WHERE status='DRAFT')::int draft,count(*) FILTER(WHERE status='SCHEDULED')::int scheduled,count(*) FILTER(WHERE status='ARCHIVED')::int archived FROM blog_posts`)]);res.set('Cache-Control','no-store').json({blogs:records.rows.map(serialize),stats:stats.rows[0]});});
 router.get('/:id',async(req,res)=>{const {rows}=await pool.query('SELECT * FROM blog_posts WHERE id=$1',[req.params.id]);if(!rows[0])return res.status(404).json({message:'Blog post not found'});res.json({blog:serialize(rows[0])});});

@@ -1,0 +1,2 @@
+/* Status claims stay hidden until live site settings explicitly enable them. */
+.public-site footer .footer-bottom>span{display:none}

@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "node --watch src.js",
     "start": "node src.js",
-    "test": "node --test",
-    "check": "node --check src.js && node --check app.js && node --test",
+    "test": "node --test --test-concurrency=1",
+    "test:integration": "node --test --test-concurrency=1 test/integration.test.js",
+    "check": "node --check src.js && node --check app.js && node --test --test-concurrency=1",
     "db:init": "node scripts/init-db.js",
     "db:check": "node scripts/check-db.js",
     "admin:create": "node scripts/create-super-admin.js",

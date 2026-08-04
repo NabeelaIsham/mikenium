@@ -1,12 +1,14 @@
-import {mkdir,readFile,readdir,stat,unlink,writeFile} from 'fs/promises';
+import {copyFile,mkdir,readFile,readdir,stat,unlink,writeFile} from 'fs/promises';
 import {fileURLToPath} from 'url';
 import path from 'path';
 import {createCipheriv,createDecipheriv,randomBytes,randomUUID} from 'crypto';
 import {pool} from '../config/db.js';
 import {env} from '../config/env.js';
+import {sendOperationalAlert} from './alerts.js';
 
 export const backupPath=fileURLToPath(new URL('../backups/',import.meta.url));
 const uploadsPath=fileURLToPath(new URL('../uploads/',import.meta.url));
+const offsitePath=env.backupOffsiteDir?path.resolve(env.backupOffsiteDir):'';
 const tables=['users','site_settings','services','clients','projects','products','pricing_plans','blog_posts','testimonials','contact_messages','contact_message_replies','newsletter_subscribers','partners','admin_audit_logs'];
 
 function encryptionKey(){
@@ -37,31 +39,66 @@ async function filesIn(directory,root=directory){
     if(entry.isDirectory())output.push(...await filesIn(full,root));
     else{
       const info=await stat(full);
-      if(info.size<=10*1024*1024)output.push({path:path.relative(root,full).replaceAll('\\','/'),data:(await readFile(full)).toString('base64')});
+      if(info.size>10*1024*1024)throw new Error(`Upload exceeds the 10 MB backup file limit: ${path.relative(root,full)}`);
+      output.push({path:path.relative(root,full).replaceAll('\\','/'),data:(await readFile(full)).toString('base64')});
     }
   }
   return output;
+}
+
+export function assertBackupCapacity(contentBytes,currentBytes,{maxBytes=env.backupMaxBytes,storageLimitBytes=env.backupStorageLimitBytes}={}){
+  if(contentBytes>maxBytes)throw new Error(`Backup exceeds BACKUP_MAX_BYTES (${maxBytes})`);
+  if(currentBytes+contentBytes>storageLimitBytes)throw new Error(`Backup storage limit would be exceeded (${storageLimitBytes})`);
+}
+async function offsiteFile(filename){
+  if(!offsitePath)return '';
+  await mkdir(offsitePath,{recursive:true});
+  return path.join(offsitePath,filename);
+}
+async function copyOffsite(filename){const target=await offsiteFile(filename);if(target)await copyFile(backupFile(filename),target)}
+async function ensureLocal(filename){
+  try{await stat(backupFile(filename))}catch(error){
+    if(error.code!=='ENOENT'||!offsitePath)throw error;
+    await mkdir(backupPath,{recursive:true});
+    await copyFile(path.join(offsitePath,filename),backupFile(filename));
+  }
 }
 
 export async function createBackup({name='',includes=['Database'],type='MANUAL',userId=null}){
   await mkdir(backupPath,{recursive:true});
   const id=randomUUID(),filename=`backup-${new Date().toISOString().replace(/[:.]/g,'-')}-${id.slice(0,8)}.backup`;
   await pool.query(`INSERT INTO system_backups(id,name,description,backup_type,includes,filename,created_by) VALUES($1,$2,$3,$4,$5,$6,$7)`,[id,name||`${type==='SCHEDULED'?'Scheduled':'Manual'} Backup - ${new Date().toLocaleString('en-GB')}`,`${includes.join(', ')} backup`,type,includes,filename,userId]);
+  const lockClient=await pool.connect();let locked=false;
   try{
+    await lockClient.query('SELECT pg_advisory_lock($1)',[7483922]);locked=true;
     const payload={version:1,createdAt:new Date().toISOString(),includes,database:{},uploads:[]};
-    if(includes.includes('Database'))for(const table of tables)payload.database[table]=(await pool.query(`SELECT * FROM ${table}`)).rows;
+    if(includes.includes('Database')){
+      await lockClient.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+      try{
+        for(const table of tables)payload.database[table]=(await lockClient.query(`SELECT * FROM ${table}`)).rows;
+        await lockClient.query('COMMIT');
+      }catch(error){await lockClient.query('ROLLBACK').catch(()=>{});throw error}
+    }
     if(includes.some(value=>value==='Files'||value==='Media Library'))payload.uploads=await filesIn(uploadsPath);
     const content=encryptBackup(JSON.stringify(payload));
+    const current=await pool.query(`SELECT COALESCE(sum(size_bytes),0)::bigint AS bytes FROM system_backups WHERE status IN ('SUCCESS','RESTORED')`);
+    assertBackupCapacity(Buffer.byteLength(content),Number(current.rows[0].bytes));
     await writeFile(backupFile(filename),content,{flag:'wx',mode:0o600});
+    await copyOffsite(filename);
     const {rows}=await pool.query(`UPDATE system_backups SET size_bytes=$2,status='SUCCESS' WHERE id=$1 RETURNING *`,[id,Buffer.byteLength(content)]);
     return rows[0];
   }catch(error){
+    await removeBackupFile(filename).catch(()=>{});
     await pool.query(`UPDATE system_backups SET status='FAILED',error_message=$2 WHERE id=$1`,[id,error.message.slice(0,1000)]);
     throw error;
+  }finally{
+    if(locked)await lockClient.query('SELECT pg_advisory_unlock($1)',[7483922]).catch(()=>{});
+    lockClient.release();
   }
 }
 
 export async function restoreBackup(record,userId){
+  await ensureLocal(record.filename);
   const payload=JSON.parse(decryptBackup(await readFile(backupFile(record.filename),'utf8')));
   if(!payload.database||!Object.keys(payload.database).length)throw new Error('This backup does not contain database data');
   await createBackup({name:`Safety backup before restoring ${record.name}`,includes:['Database'],type:'SAFETY',userId});
@@ -87,7 +124,10 @@ export async function restoreBackup(record,userId){
   await pool.query('INSERT INTO admin_audit_logs(user_id,action,metadata) VALUES($1,$2,$3)',[userId,'BACKUP_RESTORED',JSON.stringify({description:`Restored backup ${record.name}`,backupId:record.id})]);
 }
 
-export async function removeBackupFile(filename){await unlink(backupFile(filename)).catch(error=>{if(error.code!=='ENOENT')throw error})}
+export async function removeBackupFile(filename){
+  await unlink(backupFile(filename)).catch(error=>{if(error.code!=='ENOENT')throw error});
+  if(offsitePath)await unlink(path.join(offsitePath,filename)).catch(error=>{if(error.code!=='ENOENT')throw error});
+}
 function nextRun(frequency,runTime,from=new Date()){const [hour,minute]=String(runTime).slice(0,5).split(':').map(Number);const next=new Date(from);next.setHours(hour,minute,0,0);if(next<=from)next.setDate(next.getDate()+1);if(frequency==='WEEKLY')while(next.getDay()!==1)next.setDate(next.getDate()+1);if(frequency==='MONTHLY'){next.setDate(1);if(next<=from)next.setMonth(next.getMonth()+1)}return next}
 export const calculateNextRun=nextRun;
 async function scheduledTick(){
@@ -101,7 +141,7 @@ async function scheduledTick(){
       await pool.query(`UPDATE backup_schedule SET last_run_at=now(),next_run_at=$1 WHERE id=1`,[nextRun(schedule.frequency,schedule.run_time)]);
       const expired=await pool.query(`DELETE FROM system_backups WHERE backup_type='SCHEDULED' AND created_at<now()-($1||' days')::interval RETURNING filename`,[schedule.retention_days]);
       await Promise.all(expired.rows.map(row=>removeBackupFile(row.filename)));
-    }catch(error){console.error('Scheduled backup failed:',error.message)}
+    }catch(error){console.error('Scheduled backup failed:',error.message);await sendOperationalAlert('BACKUP_FAILED',{message:error.message})}
   }finally{
     if(locked)await lockClient.query('SELECT pg_advisory_unlock(7483921)').catch(()=>{});
     lockClient.release();

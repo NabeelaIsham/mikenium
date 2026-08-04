@@ -32,6 +32,8 @@ import systemBackupRoutes from './routes/system-backups.js';
 import {pool} from './config/db.js';
 import {env} from './config/env.js';
 import {rateLimit} from './middleware/rate-limit.js';
+import {sendOperationalAlert} from './services/alerts.js';
+import {requireTrustedBrowserOrigin} from './middleware/browser-origin.js';
 
 const app=express();
 const uploadsPath=fileURLToPath(new URL('./uploads',import.meta.url));
@@ -39,6 +41,7 @@ const staticPath=env.staticDir?path.resolve(env.staticDir):'';
 app.disable('x-powered-by');
 app.set('trust proxy',env.isProduction?1:false);
 app.use((req,res,next)=>{const supplied=req.get('x-request-id')||'';req.id=/^[a-zA-Z0-9._-]{1,128}$/.test(supplied)?supplied:randomUUID();res.set('X-Request-Id',req.id);next()});
+app.use((req,res,next)=>{const started=process.hrtime.bigint();res.on('finish',()=>console.log(JSON.stringify({level:'info',event:'HTTP_REQUEST',requestId:req.id,method:req.method,path:req.originalUrl.split('?')[0],status:res.statusCode,durationMs:Number(process.hrtime.bigint()-started)/1e6})));next()});
 app.use(helmet({
   crossOriginResourcePolicy:{policy:'same-site'},
   contentSecurityPolicy:{directives:{imgSrc:["'self'",'data:','https:'],upgradeInsecureRequests:env.isProduction?[]:null}}
@@ -64,10 +67,11 @@ app.use('/api/pricing',publicPricingRoutes);
 app.use('/api/blogs',publicBlogRoutes);
 app.use('/api/testimonials',publicTestimonialRoutes);
 app.use('/api/partners',publicPartnerRoutes);
-app.use('/api/contact',rateLimit({scope:'contact',limit:5,windowMs:15*60*1000}),publicContactRoutes);
+app.use('/api/contact',rateLimit({scope:'contact-ip',limit:5,windowMs:15*60*1000}),rateLimit({scope:'contact-email',limit:10,windowMs:24*60*60*1000,key:req=>String(req.body?.email||'').trim().toLowerCase()}),publicContactRoutes);
 app.post('/api/newsletter',rateLimit({scope:'newsletter-ip',limit:20,windowMs:60*60*1000}),rateLimit({scope:'newsletter-email',limit:3,windowMs:60*60*1000,key:req=>String(req.body?.email||'').trim().toLowerCase()}));
 app.use('/api/newsletter',newsletterRoutes);
 app.use('/api/admin',(req,res,next)=>{res.set({'Cache-Control':'no-store','Pragma':'no-cache'});next()});
+app.use('/api/admin',requireTrustedBrowserOrigin);
 app.use('/api/admin/settings',settingRoutes);
 app.use('/api/admin/dashboard',dashboardRoutes);
 app.use('/api/admin/users',userRoutes);
@@ -95,7 +99,7 @@ if(staticPath){
 app.use((req,res)=>res.status(404).json({message:'Not found'}));
 app.use((error,req,res,next)=>{
   const status=error.type==='entity.too.large'?413:error.message==='Origin is not allowed'?403:500;
-  if(status===500)console.error(JSON.stringify({level:'error',requestId:req.id,message:error.message,stack:env.isProduction?undefined:error.stack}));
+  if(status===500){console.error(JSON.stringify({level:'error',requestId:req.id,message:error.message,stack:env.isProduction?undefined:error.stack}));void sendOperationalAlert('HTTP_500',{requestId:req.id,path:req.originalUrl.split('?')[0],message:error.message})}
   res.status(status).json({message:status===413?'Upload or request body is too large':status===403?'Origin is not allowed':'Unexpected server error',requestId:req.id});
 });
 

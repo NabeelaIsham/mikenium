@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {decryptBackup,encryptBackup} from '../services/backup-service.js';
+import {assertBackupCapacity,decryptBackup,encryptBackup} from '../services/backup-service.js';
 
 const key=Buffer.alloc(32,7);
 
@@ -15,4 +15,10 @@ test('backup encryption detects tampering',()=>{
   const envelope=JSON.parse(encryptBackup('{"safe":true}',key));
   envelope.data=`A${envelope.data.slice(1)}`;
   assert.throws(()=>decryptBackup(JSON.stringify(envelope),key));
+});
+
+test('backup capacity rejects oversized files and exhausted storage',()=>{
+  assert.doesNotThrow(()=>assertBackupCapacity(100,200,{maxBytes:100,storageLimitBytes:300}));
+  assert.throws(()=>assertBackupCapacity(101,0,{maxBytes:100,storageLimitBytes:1000}),/BACKUP_MAX_BYTES/);
+  assert.throws(()=>assertBackupCapacity(100,201,{maxBytes:1000,storageLimitBytes:300}),/storage limit/);
 });

@@ -4,7 +4,7 @@ const email=second ? first : (process.env.SUPER_ADMIN_EMAIL||'info@mikenium.com'
 const password=second||first||process.env.ADMIN_PASSWORD;
 const name=third||'Super Admin';
 if(!password){console.error('Usage: npm run admin:create -- [email] <password> [name], or set ADMIN_PASSWORD');process.exit(1)}
-if(password.length<12){console.error('Password must contain at least 12 characters.');process.exit(1)}
+if(password.length<16){console.error('Password must contain at least 16 characters.');process.exit(1)}
 try {
   const hash=await bcrypt.hash(password,12);
   await pool.query('BEGIN');

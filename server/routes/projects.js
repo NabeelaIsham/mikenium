@@ -49,7 +49,7 @@ router.post('/image-upload',express.raw({type:Object.keys(imageTypes),limit:'5mb
   await mkdir(projectUploads,{recursive:true});
   const filename=`${randomUUID()}.${extension}`;
   await writeFile(path.join(projectUploads,filename),req.body,{flag:'wx'});
-  const imageUrl=`${req.protocol}://${req.get('host')}/uploads/projects/${filename}`;
+  const imageUrl=`/uploads/projects/${filename}`;
   await audit(req.user.sub,'PROJECT_IMAGE_UPLOADED',req.ip,{filename,description:'Uploaded a project image'});
   res.status(201).json({imageUrl});
 });

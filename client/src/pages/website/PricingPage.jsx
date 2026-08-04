@@ -9,7 +9,7 @@ const navItems=[['Home','/'],['Services','/services'],['Portfolio','/portfolio']
 const pricingIcons={rocket:I.Rocket,zap:I.Zap,chart:I.ChartNoAxesCombined,shield:I.ShieldCheck,building:I.Building2,gem:I.Gem,star:I.Star,briefcase:I.BriefcaseBusiness};
 const currencyLabel=currency=>({USD:'$',LKR:'Rs.',AUD:'A$'})[currency]||currency;
 const formatPrice=(value,currency)=>new Intl.NumberFormat('en-US',{maximumFractionDigits:currency==='LKR'?0:2}).format(value);
-const assurances=[[I.ShieldCheck,'14-day free trial','Explore every feature, risk-free.'],[I.BadgeDollarSign,'No setup fees','Start without hidden costs.'],[I.RefreshCcw,'Cancel anytime','Plans that flex with your business.'],[I.LockKeyhole,'Secure & reliable','Enterprise-grade protection.']];
+const assurances=[[I.ShieldCheck,'Clear scope','Know what is included before work begins.'],[I.BadgeDollarSign,'Transparent pricing','Review costs before committing.'],[I.RefreshCcw,'Flexible options','Choose the approach that fits your needs.'],[I.LockKeyhole,'Security minded','Risk is considered throughout delivery.']];
 const faqs=[
   ['What services does Mikenium provide?','Mikenium offers custom software development, website development, mobile application development, UI/UX design, cloud solutions, SEO services, and ongoing maintenance and support. We build scalable digital solutions tailored to your business goals.'],
   ['How long does it take to complete a project?',"The timeline depends on the project's size and complexity. A business website typically takes 2–4 weeks, while custom software solutions may take 2–6 months. We provide a detailed project timeline after reviewing your requirements."],
@@ -44,9 +44,9 @@ export default function PricingPage(){
           <span className="pricing-kicker"><i/> SIMPLE PRICING · SERIOUS CAPABILITY</span>
           <h1>Pick the runway.<br/><span>We’ll help you scale.</span></h1>
           <p>Clear plans for every stage of growth. Start lean, move faster, and expand without rebuilding the foundations.</p>
-          <div className="billing-switch" role="group" aria-label="Billing period"><span className={!annual?'selected':''}>Monthly</span><button onClick={()=>setAnnual(!annual)} aria-label={`Switch to ${annual?'monthly':'annual'} billing`} aria-pressed={annual}><i className={annual?'annual':''}/></button><span className={annual?'selected':''}>Yearly <b>Save 20%</b></span></div>
+          <div className="billing-switch" role="group" aria-label="Billing period"><span className={!annual?'selected':''}>Monthly</span><button onClick={()=>setAnnual(!annual)} aria-label={`Switch to ${annual?'monthly':'annual'} billing`} aria-pressed={annual}><i className={annual?'annual':''}/></button><span className={annual?'selected':''}>Yearly</span></div>
           <div className="pricing-currency-switch" role="group" aria-label="Display currency">{['LKR','USD','AUD'].map(code=><button className={currency===code?'active':''} onClick={()=>setCurrency(code)} key={code}>{code}</button>)}</div>
-          <div className="pricing-trust"><span><I.CheckCircle2/> No credit card required</span><span><I.CheckCircle2/> Cancel anytime</span><span><I.CheckCircle2/> Human support</span></div>
+          <div className="pricing-trust"><span><I.CheckCircle2/> Clear plan details</span><span><I.CheckCircle2/> Flexible options</span><span><I.CheckCircle2/> Human support</span></div>
         </div>
       </section>
 

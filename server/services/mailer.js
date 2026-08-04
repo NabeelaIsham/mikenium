@@ -14,7 +14,9 @@ function getTransporter(){
     host,
     port,
     secure,
+    requireTLS:!secure,
     auth:{user,pass},
+    tls:{minVersion:'TLSv1.2',rejectUnauthorized:true},
     connectionTimeout:15000,
     greetingTimeout:15000,
     socketTimeout:20000
@@ -24,14 +26,15 @@ function getTransporter(){
 
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
 const lines=value=>escapeHtml(value).replace(/\r?\n/g,'<br>');
+const headerText=value=>String(value??'').replace(/[\r\n]/g,' ').trim();
 
 export async function sendContactNotification(message){
   const subject=`New website enquiry: ${message.subject}`;
   return getTransporter().sendMail({
-    from:`${message.senderBrand||'Mikenium Website'} <${user}>`,
+    from:{name:headerText(message.senderBrand)||'Mikenium Website',address:user},
     to:message.notificationEmail||contactTo,
-    replyTo:`${message.senderName} <${message.senderEmail}>`,
-    subject,
+    replyTo:{name:headerText(message.senderName),address:message.senderEmail},
+    subject:headerText(subject),
     text:[
       `New enquiry from ${message.senderName}`,
       `Email: ${message.senderEmail}`,
@@ -47,22 +50,22 @@ export async function sendContactNotification(message){
 
 export async function sendContactReply({to,name,subject,body}){
   return getTransporter().sendMail({
-    from:`Mikenium <${user}>`,
+    from:{name:'Mikenium',address:user},
     to,
     replyTo:user,
-    subject:`Re: ${subject}`,
+    subject:headerText(`Re: ${subject}`),
     text:`Hello ${name},\n\n${body}\n\nRegards,\nMikenium Team`,
     html:`<div style="font-family:Arial,sans-serif;color:#17233a;line-height:1.65"><p>Hello ${escapeHtml(name)},</p><p>${lines(body)}</p><p>Regards,<br><strong>Mikenium Team</strong></p></div>`
   });
 }
 
-export async function sendNewsletterConfirmation(email,confirmationUrl){
+export async function sendNewsletterConfirmation(email,confirmationUrl,unsubscribeUrl){
   return getTransporter().sendMail({
-    from:`Mikenium Insights <${user}>`,
+    from:{name:'Mikenium Insights',address:user},
     to:email,
     replyTo:user,
     subject:'Confirm your Mikenium Insights subscription',
-    text:`Confirm your subscription by opening this link within one hour:\n\n${confirmationUrl}\n\nIf you did not request this, ignore this email.`,
-    html:`<div style="font-family:Arial,sans-serif;color:#17233a;line-height:1.65"><h2 style="color:#0874e8">Confirm your subscription</h2><p>Open the secure link below within one hour to subscribe to Mikenium Insights.</p><p><a href="${escapeHtml(confirmationUrl)}">Confirm subscription</a></p><p>If you did not request this, you can safely ignore this email.</p></div>`
+    text:`Confirm your subscription by opening this link within one hour:\n\n${confirmationUrl}\n\nTo opt out, use this private link:\n${unsubscribeUrl}\n\nIf you did not request this, ignore this email.`,
+    html:`<div style="font-family:Arial,sans-serif;color:#17233a;line-height:1.65"><h2 style="color:#0874e8">Confirm your subscription</h2><p>Open the secure link below within one hour to subscribe to Mikenium Insights.</p><p><a href="${escapeHtml(confirmationUrl)}">Confirm subscription</a></p><p>If you did not request this, you can safely ignore this email or <a href="${escapeHtml(unsubscribeUrl)}">opt out</a>.</p></div>`
   });
 }

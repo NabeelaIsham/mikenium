@@ -15,14 +15,8 @@ export const companyContact={
   businessHours:'Monday–Friday, 9:00 AM–6:00 PM',
   footerDescription:'We design and engineer secure digital products that help ambitious businesses grow with confidence.',
   copyright:'© 2026 Mikenium. All rights reserved.',
-  showSystemStatus:true,
-  socialLinks:[
-    {label:'Facebook',href:'https://www.facebook.com/',Icon:Facebook},
-    {label:'Instagram',href:'https://www.instagram.com/',Icon:Instagram},
-    {label:'LinkedIn',href:'https://www.linkedin.com/',Icon:Linkedin},
-    {label:'TikTok',href:'https://www.tiktok.com/',Icon:Music2},
-    {label:'YouTube',href:'https://www.youtube.com/',Icon:Youtube}
-  ]
+  showSystemStatus:false,
+  socialLinks:[]
 };
 
 const iconByNetwork={facebook:Facebook,instagram:Instagram,linkedin:Linkedin,tiktok:Music2,youtube:Youtube};

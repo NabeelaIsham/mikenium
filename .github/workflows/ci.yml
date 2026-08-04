@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: mikenium_test
+          POSTGRES_USER: mikenium
+          POSTGRES_PASSWORD: test-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U mikenium -d mikenium_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://mikenium:test-only-password@127.0.0.1:5432/mikenium_test
+      JWT_SECRET: ci-only-jwt-secret-with-at-least-32-characters
+      BACKUP_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      SUPER_ADMIN_EMAIL: admin@example.test
+      SUPER_ADMIN_TOTP_SECRET: JBSWY3DPEHPK3PXP
+      CLIENT_URL: http://localhost:5173
+      RUN_INTEGRATION_TESTS: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            client/package-lock.json
+            server/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix server
+      - run: npm ci --prefix client
+      - run: npm run check
+      - run: npm audit --omit=dev --prefix server
+      - run: npm audit --omit=dev --prefix client
+      - run: docker build --tag mikenium:ci .

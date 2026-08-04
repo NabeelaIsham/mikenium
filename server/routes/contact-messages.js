@@ -53,6 +53,13 @@ router.patch('/:id',async(req,res)=>{
   res.json({message:serialize(rows[0])});
 });
 
+router.delete('/:id',async(req,res)=>{
+  const {rows}=await pool.query('DELETE FROM contact_messages WHERE id=$1 RETURNING id',[req.params.id]);
+  if(!rows[0])return res.status(404).json({message:'Contact message not found'});
+  await audit(req.user.sub,'CONTACT_MESSAGE_DELETED',req.ip,{targetMessageId:req.params.id,description:'Deleted a contact message following an authorized privacy or retention action'});
+  res.status(204).end();
+});
+
 router.post('/:id/replies',async(req,res)=>{
   const parsed=z.object({body:z.string().trim().min(2).max(10000),type:z.enum(['REPLY','INTERNAL_NOTE']).default('REPLY')}).safeParse(req.body);
   if(!parsed.success)return res.status(400).json({message:parsed.error.issues[0]?.message||'Write a reply first'});

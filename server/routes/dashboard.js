@@ -11,8 +11,7 @@ router.get('/',requireSuperAdmin,async(req,res)=>{
   const client=await pool.connect();
   try {
     await client.query('BEGIN READ ONLY');
-    const [countsResult,chartResult,activityResult,userResult,serviceResult]=await Promise.all([
-      client.query(`
+    const countsResult=await client.query(`
         SELECT
           (SELECT count(*) FROM users) AS users_total,
           (SELECT count(*) FROM users WHERE created_at>=now()-interval '7 days') AS users_current,
@@ -34,30 +33,29 @@ router.get('/',requireSuperAdmin,async(req,res)=>{
           (SELECT count(*) FROM projects WHERE status='IN_PROGRESS') AS running_projects,
           (SELECT count(*) FROM contact_messages WHERE status='NEW' AND subject ILIKE '%support%') AS support_tickets,
           (SELECT count(*) FROM contact_messages WHERE status='NEW') AS messages
-      `),
-      client.query(`
+      `);
+    const chartResult=await client.query(`
         WITH days AS (SELECT generate_series(current_date-6,current_date,interval '1 day')::date AS day)
         SELECT to_char(days.day,'Mon DD') AS label,
           (SELECT count(*) FROM users WHERE created_at::date<=days.day) AS users,
           (SELECT count(*) FROM clients WHERE created_at::date<=days.day) AS clients,
           (SELECT count(*) FROM projects WHERE created_at::date<=days.day) AS projects
         FROM days ORDER BY days.day
-      `),
-      client.query(`
+      `);
+    const activityResult=await client.query(`
         SELECT l.id,l.action,l.metadata,l.created_at,u.name AS user_name,u.email
         FROM admin_audit_logs l LEFT JOIN users u ON u.id=l.user_id
         ORDER BY l.created_at DESC LIMIT 5
-      `),
-      client.query(`
+      `);
+    const userResult=await client.query(`
         SELECT id,name,email,role,created_at FROM users
         WHERE role<>'SUPER_ADMIN' ORDER BY created_at DESC LIMIT 5
-      `),
-      client.query(`
+      `);
+    const serviceResult=await client.query(`
         SELECT s.name,count(p.id)::int AS value
         FROM services s LEFT JOIN projects p ON p.service_id=s.id
         WHERE s.active GROUP BY s.id,s.name ORDER BY value DESC,s.name LIMIT 5
-      `)
-    ]);
+      `);
     await client.query('COMMIT');
 
     const c=countsResult.rows[0];

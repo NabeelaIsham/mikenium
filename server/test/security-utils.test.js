@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {isSafePublicUrl,publicUrlOr} from '../utils/safe-url.js';
 import {validateImageUpload} from '../utils/image-upload.js';
 import {findTotpCounter,totpAt} from '../services/totp.js';
+import {csvCell} from '../utils/csv.js';
 
 test('public URLs reject active and protocol-relative schemes',()=>{
   assert.equal(isSafePublicUrl('javascript:alert(1)'),false);
@@ -27,4 +28,9 @@ test('TOTP accepts the current counter and rejects invalid codes',()=>{
   assert.equal(totpAt('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',1,8),'94287082');
   assert.equal(findTotpCounter(secret,totpAt(secret,counter),{now}),counter);
   assert.equal(findTotpCounter(secret,'000000',{now}),null);
+});
+
+test('CSV export neutralizes spreadsheet formulas',()=>{
+  assert.equal(csvCell('=HYPERLINK("https://evil.example")'),'"\'=HYPERLINK(""https://evil.example"")"');
+  assert.equal(csvCell('normal'),'"normal"');
 });

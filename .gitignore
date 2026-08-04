@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 .env.production
+.production-approvals.json
 *.log
 tmp/
 server/uploads/*

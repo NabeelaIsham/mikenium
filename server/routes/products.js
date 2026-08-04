@@ -42,7 +42,7 @@ router.post('/image-upload',express.raw({type:Object.keys(imageTypes),limit:'5mb
   await mkdir(uploadsPath,{recursive:true});
   const filename=`${randomUUID()}.${extension}`;
   await writeFile(path.join(uploadsPath,filename),req.body,{flag:'wx'});
-  const imageUrl=`${req.protocol}://${req.get('host')}/uploads/products/${filename}`;
+  const imageUrl=`/uploads/products/${filename}`;
   await audit(req.user.sub,'PRODUCT_IMAGE_UPLOADED',req.ip,{filename,description:'Uploaded a product image'});
   res.status(201).json({imageUrl});
 });

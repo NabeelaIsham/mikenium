@@ -1,8 +1,11 @@
 import app from './app.js';
 import {pool} from './config/db.js';
 import {env} from './config/env.js';
+import {sendOperationalAlert} from './services/alerts.js';
+import {startHousekeeping} from './services/housekeeping.js';
 
 const server=app.listen(env.port,()=>console.log(`Mikenium API listening on port ${env.port} (${env.nodeEnv})`));
+const stopHousekeeping=startHousekeeping();
 server.requestTimeout=60000;
 server.headersTimeout=15000;
 server.keepAliveTimeout=5000;
@@ -11,6 +14,7 @@ let shuttingDown=false;
 async function shutdown(signal){
   if(shuttingDown)return;
   shuttingDown=true;
+  stopHousekeeping();
   console.log(`${signal} received; shutting down`);
   const force=setTimeout(()=>process.exit(1),10000);force.unref();
   server.close(async error=>{
@@ -23,5 +27,5 @@ async function shutdown(signal){
 }
 process.on('SIGTERM',()=>shutdown('SIGTERM'));
 process.on('SIGINT',()=>shutdown('SIGINT'));
-process.on('unhandledRejection',error=>{console.error('Unhandled rejection:',error);shutdown('unhandledRejection')});
-process.on('uncaughtException',error=>{console.error('Uncaught exception:',error);shutdown('uncaughtException')});
+process.on('unhandledRejection',error=>{console.error('Unhandled rejection:',error);void sendOperationalAlert('UNHANDLED_REJECTION',{message:error?.message||String(error)}).finally(()=>shutdown('unhandledRejection'))});
+process.on('uncaughtException',error=>{console.error('Uncaught exception:',error);void sendOperationalAlert('UNCAUGHT_EXCEPTION',{message:error?.message||String(error)}).finally(()=>shutdown('uncaughtException'))});

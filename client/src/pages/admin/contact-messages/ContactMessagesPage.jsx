@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import * as I from 'lucide-react';
-import {getContactMessage,getContactMessages,replyToContactMessage,updateContactMessage} from '../../../services/admin/admin-api';
+import {deleteContactMessage,getContactMessage,getContactMessages,replyToContactMessage,updateContactMessage} from '../../../services/admin/admin-api';
 
 const tones=['blue','purple','orange','green','red','yellow','cyan'];
 const labels={NEW:'New',READ:'Read',REPLIED:'Replied',CLOSED:'Closed',TRASH:'Trash'};
@@ -82,6 +82,12 @@ export function ContactMessagesPage(){
     }catch(sendError){setError(sendError.message);await load(active.id)}
     finally{setSaving(false)}
   };
+  const removeMessage=async()=>{
+    if(!active||!window.confirm('Permanently delete this enquiry and its personal data? This cannot be undone.'))return;
+    setSaving(true);setError('');
+    try{await deleteContactMessage(active.id);setActive(null);setActiveId('');await load();flash('Contact data permanently deleted')}
+    catch(deleteError){setError(deleteError.message)}finally{setSaving(false)}
+  };
   const statCards=[
     ['Total Messages',stats.total,I.Mail,'blue'],
     ['New Messages',stats.new,I.MessageSquare,'green'],
@@ -96,14 +102,14 @@ export function ContactMessagesPage(){
       <div className="card contact-inbox"><div className="contact-toolbar"><div className="users-search"><I.Search/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Search messages..."/></div><select value={status} onChange={event=>setStatus(event.target.value)}><option value="ALL">All Status</option>{Object.entries(labels).map(([value,label])=><option value={value} key={value}>{label}</option>)}</select><select value={channel} onChange={event=>setChannel(event.target.value)}><option value="ALL">All Channels</option>{channels.map(value=><option value={value} key={value}>{value}</option>)}</select><div className="toolbar-spacer"/><button onClick={()=>{setQuery('');setStatus('ALL');setChannel('ALL')}}><I.ListFilter/> Clear Filters</button></div>
         <div className="contact-table-wrap"><table className="users-table contact-table"><thead><tr><th><input type="checkbox" checked={filtered.length>0&&filtered.every(message=>selected.includes(message.id))} onChange={toggleAll}/></th><th>Sender</th><th>Subject</th><th>Status</th><th>Received On <I.RotateCw/></th></tr></thead><tbody>{filtered.map((message,index)=>{const received=dateParts(message.createdAt);return <tr key={message.id} className={message.id===activeId?'selected':''} onClick={()=>openMessage(message)}><td><input type="checkbox" checked={selected.includes(message.id)} onClick={event=>event.stopPropagation()} onChange={()=>toggle(message.id)}/></td><td><div className="message-sender"><i className={tones[index%tones.length]}>{initials(message.sender)}</i><span><b>{message.sender}</b><small>{message.email}</small></span></div></td><td><span className="message-subject"><b>{message.subject}</b><small>{message.message}</small></span></td><td><span className={`message-status ${message.status.toLowerCase()}`}>{labels[message.status]}</span></td><td><span className="created-date">{received.date}<small>{received.time}</small></span></td></tr>})}</tbody></table>{!loading&&!filtered.length&&<div className="empty"><I.MailOpen/><b>No enquiries found</b><span>Website enquiries will appear here as soon as they are submitted.</span></div>}{loading&&<div className="empty"><I.LoaderCircle className="spin"/><b>Loading enquiries...</b></div>}</div>
         <div className="users-footer"><span>Showing {filtered.length} of {messages.length} messages</span></div></div></div>
-      {active&&<MessageDetail active={active} saving={saving} reply={reply} setReply={setReply} tab={tab} setTab={setTab} changeStatus={changeStatus} sendReply={sendReply}/>}
+      {active&&<MessageDetail active={active} saving={saving} reply={reply} setReply={setReply} tab={tab} setTab={setTab} changeStatus={changeStatus} sendReply={sendReply} removeMessage={removeMessage}/>}
     </div>{toast&&<div className="toast"><I.CircleCheck/>{toast}</div>}
   </div>;
 }
 
-function MessageDetail({active,saving,reply,setReply,tab,setTab,changeStatus,sendReply}){
+function MessageDetail({active,saving,reply,setReply,tab,setTab,changeStatus,sendReply,removeMessage}){
   const received=dateParts(active.createdAt);
-  return <aside className="card message-detail"><div className="message-detail-head"><h2>{active.subject}</h2><span className={`message-status ${active.status.toLowerCase()}`}>{labels[active.status]}</span><div><button title="Close enquiry" disabled={saving} onClick={()=>changeStatus('CLOSED')}><I.CircleCheck/></button><button title="Move to trash" disabled={saving} onClick={()=>changeStatus('TRASH')}><I.Trash2/></button></div></div>
+  return <aside className="card message-detail"><div className="message-detail-head"><h2>{active.subject}</h2><span className={`message-status ${active.status.toLowerCase()}`}>{labels[active.status]}</span><div><button title="Close enquiry" disabled={saving} onClick={()=>changeStatus('CLOSED')}><I.CircleCheck/></button><button title="Move to trash" disabled={saving} onClick={()=>changeStatus('TRASH')}><I.Archive/></button><button title="Permanently delete personal data" disabled={saving} onClick={removeMessage}><I.Trash2/></button></div></div>
     <div className="message-profile"><div className="message-person"><i className="blue">{initials(active.sender)}</i><span><b>{active.sender}</b><small>{active.email}</small>{active.phone&&<small>{active.phone}</small>}{active.company&&<small>{active.company}</small>}</span></div><dl><div><dt>Received On</dt><dd>{received.date} {received.time}</dd></div><div><dt>Channel</dt><dd>{active.channel}</dd></div><div><dt>IP Address</dt><dd>{active.ip||'Unavailable'}</dd></div></dl></div>
     <div className="message-enquiry-meta"><span><b>Requested service</b>{active.service||'General enquiry'}</span><span><b>Notification email</b>{active.notificationStatus==='SENT'?'Delivered':active.notificationStatus==='FAILED'?'Failed':'Pending'}</span></div>
     <div className="message-body">{active.message.split(/\r?\n/).map((paragraph,index)=><p key={index}>{paragraph||'\u00a0'}</p>)}</div>

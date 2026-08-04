@@ -1,0 +1,10 @@
+{
+  "legalReviewCompleted": false,
+  "publicClaimsVerified": false,
+  "offsiteBackupTargetVerified": false,
+  "restoreDrillCompleted": false,
+  "monitoringAlertsTested": false,
+  "emailAuthenticationVerified": false,
+  "diskEncryptionVerified": false,
+  "penetrationTestCompleted": false
+}

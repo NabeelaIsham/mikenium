@@ -3,7 +3,7 @@ import * as I from 'lucide-react';
 import '../../styles/about-page.css';
 import {companyContact,footerNavigation} from '../../config/site-contact';
 
-const metrics = [[I.BriefcaseBusiness,'100+','Products shipped'],[I.HeartHandshake,'50+','Client partnerships'],[I.Award,'5+','Years building'],[I.Headphones,'24/7','Support coverage']];
+const metrics = [[I.BriefcaseBusiness,'Product','Strategy'],[I.HeartHandshake,'Partner','Collaboration'],[I.Award,'Quality','Engineering'],[I.Headphones,'Ongoing','Support']];
 const values = [[I.UsersRound,'Collaboration','The strongest products are shaped together—with open minds and shared ownership.'],[I.Lightbulb,'Innovation','We stay curious, challenge assumptions, and find simpler answers to hard problems.'],[I.ShieldCheck,'Integrity','Clear communication, honest decisions, and accountability at every step.'],[I.Gem,'Excellence','Craft matters. We sweat the details that make software reliable and memorable.'],[I.Heart,'Passion','We care deeply about the work, the people using it, and the outcomes it creates.']];
 const process = [[I.Search,'Discover','We unpack the business problem, users, risks, and the result that matters.'],[I.PenTool,'Design','We turn insight into a clear product direction and intuitive experience.'],[I.Code2,'Build','Our engineers ship secure, maintainable software in visible iterations.'],[I.LineChart,'Evolve','We measure, learn, support, and improve long after the first release.']];
 

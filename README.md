@@ -19,9 +19,11 @@ Public website: http://localhost:5173 · Admin dashboard: http://localhost:5173/
 
 The repository includes a hardened Docker deployment for a single Namecheap VPS: PostgreSQL, the application, persistent uploads/encrypted backups, and automatic HTTPS through Caddy. Follow [DEPLOYMENT.md](./DEPLOYMENT.md). Do not deploy using the development commands above.
 
+Database startup uses checksum-protected versioned migrations. CI runs unit tests, PostgreSQL-backed HTTP smoke tests, dependency audits, the client build, and a container build. A production rollout must also pass `npm run release:check`, which verifies that the external legal, claims, monitoring, off-site backup, and restore-drill approvals have been recorded locally.
+
 ## Super-admin security model
 
-- The public `/api/auth/login` route rejects accounts with the `SUPER_ADMIN` role.
+- There is no public-user login endpoint; only the separately protected company super-admin flow is exposed.
 - A super admin can only be created from the server command line by the company.
 - The admin login creates an 8-hour, HTTP-only, SameSite cookie containing a signed JWT.
 - Admin routes verify both the signed JWT and the `SUPER_ADMIN` role.

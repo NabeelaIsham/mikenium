@@ -37,6 +37,6 @@ router.patch('/:section',async(req,res)=>{
 router.post('/identity-upload',express.raw({type:Object.keys(imageTypes),limit:'3mb'}),async(req,res)=>{
   const extension=validateImageUpload(req.body,req.get('content-type'),imageTypes);if(!extension)return res.status(415).json({message:'Select a valid JPG, PNG, WebP, or ICO image'});
   await mkdir(uploadsPath,{recursive:true});const filename=`${randomUUID()}.${extension}`;await writeFile(path.join(uploadsPath,filename),req.body,{flag:'wx'});
-  res.status(201).json({url:`${req.protocol}://${req.get('host')}/uploads/settings/${filename}`});
+  res.status(201).json({url:`/uploads/settings/${filename}`});
 });
 export default router;

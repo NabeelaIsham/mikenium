@@ -15,6 +15,7 @@ const schema=z.object({
 });
 
 router.post('/',async(req,res)=>{
+  if(String(req.body?.website||'').trim())return res.status(201).json({message:'Thank you. Your enquiry has been received.'});
   const parsed=schema.safeParse(req.body);
   if(!parsed.success)return res.status(400).json({message:parsed.error.issues[0]?.message||'Please check your enquiry details'});
   const data=parsed.data;
@@ -25,7 +26,6 @@ router.post('/',async(req,res)=>{
     [data.name,data.email,data.company,data.phone,data.service,subject,data.message,req.ip,req.get('user-agent')||'']
   );
   const record=rows[0];
-  let notificationSent=false;
   try{
     const settingsResult=await pool.query('SELECT general,email FROM site_settings WHERE id=1');
     const siteSettings=settingsResult.rows[0]||{};const emailSettings=siteSettings.email||{};
@@ -36,13 +36,12 @@ router.post('/',async(req,res)=>{
       phone:record.phone,service:record.service,subject:record.subject,message:record.message,
       notificationEmail:emailSettings.notificationEmail,senderBrand:emailSettings.senderName||siteSettings.general?.siteName
     });
-    notificationSent=emailSettings.notifyContact!==false;
     await pool.query(`UPDATE contact_messages SET notification_status='SENT',notification_error='',updated_at=now() WHERE id=$1`,[record.id]);
   }catch(error){
     console.error('Contact notification email failed:',error.message);
     await pool.query(`UPDATE contact_messages SET notification_status='FAILED',notification_error=$2,updated_at=now() WHERE id=$1`,[record.id,error.message.slice(0,1000)]);
   }
-  res.status(201).json({message:'Thank you. Your enquiry has been received.',id:record.id,notificationSent});
+  res.status(201).json({message:'Thank you. Your enquiry has been received.'});
 });
 
 export default router;

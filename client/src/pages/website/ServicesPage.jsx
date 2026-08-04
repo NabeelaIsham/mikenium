@@ -56,7 +56,7 @@ export default function ServicesPage(){
         </div>
       </section>
 
-      <section className="services-proof" aria-label="Service outcomes">{[[I.BriefcaseBusiness,'100+','products delivered'],[I.Gauge,'2.4×','faster release cycles'],[I.HeartHandshake,'98%','client satisfaction'],[I.Headphones,'24/7','support coverage']].map(([Icon,n,l])=><article key={l}><Icon/><div><strong>{n}</strong><small>{l}</small></div></article>)}</section>
+      <section className="services-proof" aria-label="Service approach">{[[I.BriefcaseBusiness,'Product','delivery'],[I.Gauge,'Iterative','releases'],[I.HeartHandshake,'Close','collaboration'],[I.Headphones,'Ongoing','support']].map(([Icon,n,l])=><article key={l}><Icon/><div><strong>{n}</strong><small>{l}</small></div></article>)}</section>
 
       <section className="capabilities reveal" id="capabilities">
         <div className="services-section-head"><div><span>WHAT WE DO</span><h2>Expertise for every stage<br/>of your <em>digital journey.</em></h2></div><p>Focused capabilities, connected by one delivery team. Choose a single service or bring us the entire product challenge.</p></div>

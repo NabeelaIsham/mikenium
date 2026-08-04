@@ -20,10 +20,10 @@ VALUES (1,
   '{"logoUrl":"/assets/mikenium-logo-transparent.png","faviconUrl":"/assets/mikenium-logo-transparent.png","logoAlt":"Mikenium — Building Smarter Software","primaryColor":"#0874ee"}',
   '{"senderName":"Mikenium","replyTo":"info@mikenium.com","notificationEmail":"info@mikenium.com","notifyContact":true,"notifyNewsletter":true}',
   '{"defaultTitle":"Mikenium | Building Smarter Software","titleSuffix":" | Mikenium","description":"Mikenium designs and engineers secure digital products that help ambitious businesses grow.","keywords":"software development, web development, mobile apps, Sri Lanka","ogImageUrl":"","allowIndexing":true}',
-  '{"facebook":"https://www.facebook.com/","instagram":"https://www.instagram.com/","linkedin":"https://www.linkedin.com/","tiktok":"https://www.tiktok.com/","youtube":"https://www.youtube.com/"}',
+  '{}',
   '{"enabled":false,"title":"We will be back soon","message":"Our website is receiving an update. Please check back shortly."}',
   '{"sessionMinutes":480,"maxLoginAttempts":5,"auditLogging":true}',
-  '{"copyright":"© 2026 Mikenium. All rights reserved.","footerDescription":"We design and engineer secure digital products that help ambitious businesses grow with confidence.","businessHours":"Monday–Friday, 9:00 AM–6:00 PM","mapsUrl":"https://maps.google.com/?q=116+Marikkar+Street+Kalutara+South","showSystemStatus":true}'
+  '{"copyright":"© 2026 Mikenium. All rights reserved.","footerDescription":"We design and engineer secure digital products that help ambitious businesses grow with confidence.","businessHours":"Monday–Friday, 9:00 AM–6:00 PM","mapsUrl":"https://maps.google.com/?q=116+Marikkar+Street+Kalutara+South","showSystemStatus":false}'
 ) ON CONFLICT (id) DO NOTHING;
 
 DO $$ BEGIN
@@ -204,7 +204,7 @@ INSERT INTO pricing_plans(name,eyebrow,description,monthly_price,annual_monthly_
 VALUES
   ('Starter','LAUNCH','A focused foundation for startups and smaller digital projects.',19,15,5700,4500,29.45,23.25,'USD','/ month',ARRAY['1 active project','5 GB secure storage','Essential support','Community access','Regular product updates'],'Get started','/contact','rocket',false,false,'PUBLISHED',1),
   ('Professional','GROW','More capacity and collaboration for ambitious growing teams.',49,39,14700,11700,75.95,60.45,'USD','/ month',ARRAY['10 active projects','50 GB secure storage','Priority support','Team collaboration','Advanced analytics','API access'],'Get started','/contact','zap',false,false,'PUBLISHED',2),
-  ('Business','SCALE','Advanced delivery, insight, and support for established businesses.',99,79,29700,23700,153.45,122.45,'USD','/ month',ARRAY['Unlimited projects','200 GB secure storage','24/7 priority support','Team collaboration','Advanced analytics','API access','Custom integrations'],'Choose Business','/contact','chart',false,true,'PUBLISHED',3),
+  ('Business','SCALE','Advanced delivery, insight, and support for established businesses.',99,79,29700,23700,153.45,122.45,'USD','/ month',ARRAY['Unlimited projects','200 GB secure storage','Priority support','Team collaboration','Advanced analytics','API access','Custom integrations'],'Choose Business','/contact','chart',false,true,'PUBLISHED',3),
   ('Enterprise','TRANSFORM','Tailored software, security, and support for complex organizations.',NULL,NULL,NULL,NULL,NULL,NULL,'USD','/ month',ARRAY['Unlimited projects and storage','Dedicated success team','Advanced security controls','Custom integrations','SLA guarantee','On-premise options'],'Contact sales','/contact','shield',true,false,'PUBLISHED',4)
 ON CONFLICT (name) DO NOTHING;
 
