@@ -12,5 +12,5 @@
     "check": "npm run check --prefix server && npm run check --prefix client",
     "release:check": "node scripts/release-check.js"
   },
-  "devDependencies": { "concurrently": "^9.1.2" }
+  "devDependencies": { "concurrently": "^10.0.4" }
 }
