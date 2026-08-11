@@ -18,7 +18,14 @@ const process=[
   [I.TestTube2,'Validate','We test quality, security, performance, and usability throughout delivery.'],
   [I.Rocket,'Evolve','We launch, measure, support, and keep improving what creates value.']
 ];
-const stack=['React','Node.js','TypeScript','AWS','Azure','Flutter','PostgreSQL','Docker'];
+const technologyStack=[
+  {title:'Frontend',icon:I.LayoutTemplate,items:['React','Next.js','TypeScript','JavaScript','Tailwind CSS','Vue.js']},
+  {title:'Backend',icon:I.ServerCog,items:['Node.js','Express.js','Python','PHP','Laravel','REST APIs']},
+  {title:'Database',icon:I.Database,items:['PostgreSQL','MongoDB','MySQL','Redis']},
+  {title:'Mobile',icon:I.Smartphone,items:['Flutter','React Native','iOS','Android']},
+  {title:'Cloud & DevOps',icon:I.CloudCog,items:['AWS','Azure','Docker','GitHub','GitHub Actions','CI/CD']},
+  {title:'AI & Automation',icon:I.Sparkles,items:['Python','OpenAI APIs','AI Integrations','Workflow Automation']}
+];
 
 function Logo(){return <a className="public-logo" href="/" aria-label="Mikenium home"><img src={companyContact.logoUrl} width="220" height="55" decoding="async" alt={companyContact.logoAlt}/></a>}
 function SiteButton({children,href='/contact#contact-form',ghost=false}){return <a className={'site-button '+(ghost?'outline':'')} href={href}>{children}<I.ArrowRight/></a>}
@@ -72,7 +79,10 @@ export default function ServicesPage(){
         <div className="delivery-note"><span><I.CalendarCheck/> Weekly progress you can see</span><span><I.MessageSquareMore/> Direct access to your team</span><span><I.ShieldCheck/> Quality checked continuously</span></div>
       </section>
 
-      <section className="technology reveal"><div><span className="services-eyebrow">MODERN BY DEFAULT</span><h2>The right technology,<br/>chosen for the <em>right reason.</em></h2></div><div className="stack-grid">{stack.map((item,i)=><span key={item}><b>{String(i+1).padStart(2,'0')}</b>{item}</span>)}</div></section>
+      <section className="technology reveal">
+        <div className="technology-head"><div><span className="services-eyebrow">MODERN BY DEFAULT</span><h2>The right technology,<br/>chosen for the <em>right reason.</em></h2></div><p>From polished interfaces to reliable infrastructure, we choose proven tools that fit your product, team, and growth plans.</p></div>
+        <div className="technology-categories">{technologyStack.map((category,i)=>{const Icon=category.icon;return <article className="technology-card" key={category.title}><header><span className="technology-icon"><Icon/></span><div><small>{String(i+1).padStart(2,'0')}</small><h3>{category.title}</h3></div></header><ul>{category.items.map(item=><li key={item}>{item}</li>)}</ul></article>})}</div>
+      </section>
 
       <section className="service-cta reveal"><div className="service-cta-grid"/><span className="cta-symbol"><I.Sparkles/></span><div><small>YOUR NEXT MOVE STARTS HERE</small><h2>Have a challenge worth solving?</h2><p>Let’s turn it into clear decisions, useful software, and measurable progress.</p></div><SiteButton href="/#contact">Start a conversation</SiteButton></section>
     </main>
