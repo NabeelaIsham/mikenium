@@ -4,21 +4,21 @@ import { Heading, Stats, Toast } from '../shared/CmsShared';
 
 const folders=[['All Files',1248],['Blog Images',245],['Project Images',189],['Service Icons',96],['Testimonials',58],['Clients',72],['Team Members',34],['General',112],['Documents',128],['Videos',156],['Audio',69],['Others',89]];
 const mediaSeed=[
-  {name:'office-interior.jpg',type:'JPG',size:'2.4 MB',folder:'General',asset:'/assets/about-team-studio-v2.png',kind:'image'},
-  {name:'building.jpg',type:'JPG',size:'1.8 MB',folder:'Project Images',asset:'/assets/portfolio-showcase.png',kind:'image'},
+  {name:'office-interior.jpg',type:'JPG',size:'2.4 MB',folder:'General',asset:'/assets/about-team-studio-v2.jpg',kind:'image'},
+  {name:'building.jpg',type:'JPG',size:'1.8 MB',folder:'Project Images',asset:'/assets/portfolio-showcase.jpg',kind:'image'},
   {name:'Project-Proposal.pdf',type:'PDF',size:'1.2 MB',folder:'Documents',kind:'pdf'},
-  {name:'product-demo.mp4',type:'MP4',size:'12.6 MB',folder:'Videos',asset:'/assets/blog-showcase.png',kind:'video'},
-  {name:'team-meeting.jpg',type:'JPG',size:'3.1 MB',folder:'Team Members',asset:'/assets/about-team-studio-v2.png',kind:'image'},
+  {name:'product-demo.mp4',type:'MP4',size:'12.6 MB',folder:'Videos',asset:'/assets/blog-showcase.jpg',kind:'video'},
+  {name:'team-meeting.jpg',type:'JPG',size:'3.1 MB',folder:'Team Members',asset:'/assets/about-team-studio-v2.jpg',kind:'image'},
   {name:'service-icon-1.png',type:'PNG',size:'45 KB',folder:'Service Icons',asset:'/assets/mikenium-logo-transparent.png',kind:'image'},
-  {name:'hero-banner.jpg',type:'JPG',size:'1.6 MB',folder:'Blog Images',asset:'/assets/blog-showcase.png',kind:'image'},
+  {name:'hero-banner.jpg',type:'JPG',size:'1.6 MB',folder:'Blog Images',asset:'/assets/blog-showcase.jpg',kind:'image'},
   {name:'company-brochure.pdf',type:'PDF',size:'3.7 MB',folder:'Documents',kind:'pdf'},
   {name:'mikenium-logo.png',type:'PNG',size:'98 KB',folder:'General',asset:'/assets/mikenium-logo-transparent.png',kind:'image'},
-  {name:'john-smith.jpg',type:'JPG',size:'580 KB',folder:'Clients',asset:'/assets/about-team-studio-v2.png',kind:'image'},
+  {name:'john-smith.jpg',type:'JPG',size:'580 KB',folder:'Clients',asset:'/assets/about-team-studio-v2.jpg',kind:'image'},
   {name:'background-music.mp3',type:'MP3',size:'4.2 MB',folder:'Audio',kind:'audio'},
-  {name:'analytics-chart.jpg',type:'JPG',size:'1.3 MB',folder:'Blog Images',asset:'/assets/blog-showcase.png',kind:'image'},
+  {name:'analytics-chart.jpg',type:'JPG',size:'1.3 MB',folder:'Blog Images',asset:'/assets/blog-showcase.jpg',kind:'image'},
   {name:'Terms & Conditions.docx',type:'DOCX',size:'32 KB',folder:'Documents',kind:'doc'},
-  {name:'project-discussion.jpg',type:'JPG',size:'2.7 MB',folder:'Project Images',asset:'/assets/about-team-studio-v2.png',kind:'image'},
-  {name:'client-testimonial.mp4',type:'MP4',size:'8.9 MB',folder:'Testimonials',asset:'/assets/portfolio-showcase.png',kind:'video'}
+  {name:'project-discussion.jpg',type:'JPG',size:'2.7 MB',folder:'Project Images',asset:'/assets/about-team-studio-v2.jpg',kind:'image'},
+  {name:'client-testimonial.mp4',type:'MP4',size:'8.9 MB',folder:'Testimonials',asset:'/assets/portfolio-showcase.jpg',kind:'video'}
 ];
 
 function MediaVisual({item}){if(item.asset)return <div className="media-visual image" style={{backgroundImage:`url('${item.asset}')`}}>{item.kind==='video'&&<I.PlayCircle/>}</div>;const Icon=item.kind==='audio'?I.Music2:I.FileText;return <div className={`media-visual ${item.kind}`}><Icon/><b>{item.type}</b></div>}

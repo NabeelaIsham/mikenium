@@ -1,71 +1,52 @@
-import React, { useEffect, useRef, useState } from 'react';
-import * as I from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { ListingPage, UsersPage, ClientsPage, ProjectsPage, ServicesPage as AdminServicesPage, ProductsAdminPage, PricingAdminPage, BlogsAdminPage, TestimonialsPage, PartnersPage, ContactMessagesPage, PagesAdminPage, SettingsPage, BackupPage, ViewSite, listingNames } from './pages/admin/AdminPages';
-import { MenusPage, MediaLibraryPage, SlidersPage } from './pages/admin/CmsPages';
-import { RolesPermissionsPage, SettingsAdminPage, ActivityLogsPage, SystemBackupAdminPage } from './pages/admin/SystemAdminPages';
-import PublicHome from './pages/website/PublicHome';
-import AboutPage from './pages/website/AboutPage';
-import ServicesPage from './pages/website/ServicesPage';
-import PortfolioPage from './pages/website/PortfolioPage';
-import ProductsPage from './pages/website/ProductsPage';
-import PricingPage from './pages/website/PricingPage';
-import BlogPage from './pages/website/BlogPage';
-import SingleBlogPage from './pages/website/SingleBlogPage';
-import ContactPage from './pages/website/ContactPage';
-import LegalPage from './pages/website/LegalPage';
+import React,{lazy,Suspense} from 'react';
 import CookieConsent from './components/CookieConsent';
-import AdminLogin from './pages/admin/AdminLogin';
-import { getAdminSession, getContactMessages, getDashboard, logoutAdmin, updateContactMessage } from './services/admin/admin-api';
+import Seo from './components/Seo';
 import {SiteSettingsProvider} from './context/SiteSettingsContext';
+import './styles/public-home.css';
+import './styles/about-page.css';
+import './styles/services-page.css';
+import './styles/portfolio-page.css';
+import './styles/products-page.css';
+import './styles/pricing-page.css';
+import './styles/blog-page.css';
+import './styles/single-blog-page.css';
+import './styles/contact-page.css';
+import './styles/legal-pages.css';
+import './styles/responsive-public.css';
+import './styles/production-safety.css';
 
-const navGroups = [
-  { label: '', items: [['Dashboard', I.LayoutDashboard]] },
-  { label: 'MANAGEMENT', items: [['Users', I.Users], ['Clients', I.Contact], ['Projects', I.BriefcaseBusiness], ['Services', I.BadgeCheck], ['Products', I.Gift], ['Pricing', I.BadgeDollarSign], ['Blogs', I.NotebookTabs], ['Testimonials', I.MessageSquare], ['Partners', I.Handshake], ['Contact Messages', I.Mail]] },
-  { label: 'SYSTEM', items: [['Settings', I.Settings], ['Activity Logs', I.History], ['System Backup', I.DatabaseBackup]] }
-];
+const AdminShell=lazy(()=>import('./AdminShell'));
+const PublicHome=lazy(()=>import('./pages/website/PublicHome'));
+const AboutPage=lazy(()=>import('./pages/website/AboutPage'));
+const ServicesPage=lazy(()=>import('./pages/website/ServicesPage'));
+const PortfolioPage=lazy(()=>import('./pages/website/PortfolioPage'));
+const ProductsPage=lazy(()=>import('./pages/website/ProductsPage'));
+const PricingPage=lazy(()=>import('./pages/website/PricingPage'));
+const BlogPage=lazy(()=>import('./pages/website/BlogPage'));
+const SingleBlogPage=lazy(()=>import('./pages/website/SingleBlogPage'));
+const ContactPage=lazy(()=>import('./pages/website/ContactPage'));
+const LegalPage=lazy(()=>import('./pages/website/LegalPage'));
 
-const statConfig=[
-  ['users','Total Users',I.Users,'blue'],['clients','Total Clients',I.Building2,'green'],
-  ['projects','Total Projects',I.Folder,'purple'],['products','Total Products',I.ShoppingBag,'orange'],
-  ['blogs','Total Blogs',I.NotebookText,'pink']
-];
-const relativeTime=value=>{const seconds=Math.max(1,Math.floor((Date.now()-new Date(value).getTime())/1000));if(seconds<60)return `${seconds}s ago`;if(seconds<3600)return `${Math.floor(seconds/60)} mins ago`;if(seconds<86400)return `${Math.floor(seconds/3600)} hours ago`;return `${Math.floor(seconds/86400)} days ago`};
-const formatRange=range=>range?`${new Date(range.from).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})} - ${new Date(range.to).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}`:'Last 7 days';
-
-function Logo(){return <div className="logo"><div className="mark"><i/><b/></div><div><strong>MIKENIUM</strong><small>Building Smarter Software</small></div></div>}
-function Sidebar({open,setOpen,active,onSelect}) { const go=n=>{onSelect(n);setOpen(false)};return <aside className={open?'sidebar open':'sidebar'}>
-  <Logo/><nav>{navGroups.map((g,gi)=><section key={gi}>{g.label&&<label>{g.label}</label>}{g.items.map(([n,Icon])=><button onClick={()=>go(n)} className={n===active?'active':''} key={n}><Icon size={18}/><span>{n}</span></button>)}</section>)}</nav>
-  <button className="visit" onClick={()=>{window.location.href='/'}}><I.Globe2 size={18}/> View Site <I.ExternalLink size={16}/></button><footer>© 2024 Mikenium<br/><span>All Rights Reserved.</span></footer>
-  <button className="mobile-close" onClick={()=>setOpen(false)}><I.X/></button>
-  </aside> }
-function Notifications({onNavigate}){const [open,setOpen]=useState(false),[messages,setMessages]=useState([]),[loading,setLoading]=useState(true);const area=useRef();const load=()=>getContactMessages({status:'NEW'}).then(data=>setMessages(data.messages||[])).catch(()=>{}).finally(()=>setLoading(false));useEffect(()=>{load();const timer=setInterval(load,30000);return()=>clearInterval(timer)},[]);useEffect(()=>{const close=e=>{if(e.key==='Escape'||(area.current&&!area.current.contains(e.target)))setOpen(false)};document.addEventListener('mousedown',close);document.addEventListener('keydown',close);return()=>{document.removeEventListener('mousedown',close);document.removeEventListener('keydown',close)}},[]);async function view(message){setOpen(false);setMessages(items=>items.filter(item=>item.id!==message.id));updateContactMessage(message.id,'READ').catch(load);onNavigate('Contact Messages')}async function clear(){const items=[...messages];setMessages([]);await Promise.allSettled(items.map(item=>updateContactMessage(item.id,'READ')));load()}return <div className="notification-area" ref={area}><button className="header-icon notification-trigger bell" onClick={()=>setOpen(value=>!value)} aria-label={`${messages.length} unread notifications`} aria-expanded={open}><I.Bell/>{messages.length>0&&<i>{messages.length>99?'99+':messages.length}</i>}</button>{open&&<div className="notification-menu"><header><span><b>Notifications</b><small>{messages.length} unread contact {messages.length===1?'message':'messages'}</small></span>{messages.length>0&&<button onClick={clear}>Mark all read</button>}</header><div className="notification-list">{loading?<div className="notification-empty"><I.LoaderCircle className="spin"/>Loading notifications…</div>:messages.length?messages.slice(0,8).map(message=><button onClick={()=>view(message)} key={message.id}><span className="notification-symbol"><I.Mail/></span><span><b>{message.subject}</b><small>{message.sender} · {relativeTime(message.createdAt)}</small><em>{message.message}</em></span><i/></button>):<div className="notification-empty"><I.BellOff/><b>You're all caught up</b><small>New contact enquiries will appear here.</small></div>}</div>{messages.length>0&&<button className="notification-view-all" onClick={()=>{setOpen(false);onNavigate('Contact Messages')}}>View all contact messages <I.ArrowRight/></button>}</div>}</div>}
-function Header({toggle,title,user,onLogout,dark,onThemeChange,onNavigate,collapsed}) { return <header><button className="icon-button" onClick={toggle} title={collapsed?'Show navigation':'Toggle navigation'} aria-label={collapsed?'Show navigation':'Toggle navigation'} aria-expanded={!collapsed}><I.Menu/></button><b>{title}</b><div className="header-actions"><button className="header-icon" onClick={onThemeChange} title={dark?'Use light theme':'Use dark theme'} aria-label={dark?'Use light theme':'Use dark theme'} aria-pressed={dark}>{dark?<I.Sun/>:<I.Moon/>}</button><Notifications onNavigate={onNavigate}/><div className="avatar">SA</div><div className="admin"><b>{user?.name||'Super Admin'}</b><small>{user?.email}</small></div><button className="header-icon" onClick={onLogout} title="Sign out" aria-label="Sign out"><I.LogOut/></button></div></header> }
-function StatCard({s}) { const [title,num,up,Icon,color]=s;const positive=up>=0;return <div className="stat card"><div className={'stat-icon '+color}><Icon/></div><div><small>{title}</small><strong>{Number(num).toLocaleString()}</strong><p className={positive?'':'down'}>{positive?'↑':'↓'} {Math.abs(up)}% <span>vs previous 7 days</span></p></div></div> }
-function PlatformChart({data}){ return <div className="card overview"><div className="card-title"><b>Platform Overview</b><div className="legend"><i className="dot blue-bg"/>Users <i className="dot green-bg"/>Projects <i className="dot purple-bg"/>Clients</div><button>Last 7 Days <I.ChevronDown size={14}/></button></div><div className="chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data} margin={{top:15,right:12,left:-22,bottom:0}}><defs>{[['u','#0874e8'],['p','#36b76d'],['c','#8c5ce5']].map(x=><linearGradient key={x[0]} id={x[0]} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={x[1]} stopOpacity=".12"/><stop offset="1" stopColor={x[1]} stopOpacity="0"/></linearGradient>)}</defs><CartesianGrid stroke="#42516a" strokeOpacity=".25" vertical/><XAxis dataKey="label" tick={{fontSize:10,fill:'#8290a5'}} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{fontSize:10,fill:'#8290a5'}} axisLine={false} tickLine={false}/><Tooltip/><Area type="monotone" dataKey="users" name="Users" stroke="#0874e8" fill="url(#u)" strokeWidth={2}/><Area type="monotone" dataKey="projects" name="Projects" stroke="#36b76d" fill="url(#p)" strokeWidth={2}/><Area type="monotone" dataKey="clients" name="Clients" stroke="#8c5ce5" fill="url(#c)" strokeWidth={2}/></AreaChart></ResponsiveContainer></div></div>}
-function Summary({system}){const rows=[[I.UserRound,'Active Users',system.activeUsers,'green'],[I.Building2,'Active Clients',system.activeClients,'blue'],[I.Folder,'Running Projects',system.runningProjects,'purple'],[I.BadgeHelp,'Support Tickets',system.supportTickets,'orange'],[I.Mail,'Contact Messages',system.messages,'blue']];return <div className="card summary"><h3>System Summary</h3>{rows.map(([Icon,n,v,c])=><div className="summary-row" key={n}><span className={'mini '+c}><Icon/></span><span>{n}</span><b>{Number(v).toLocaleString()}</b>{n==='Support Tickets'&&v>0&&<em>Open</em>}</div>)}</div>}
-function Activities({items}){return <div className="card panel"><h3>Recent Activities</h3><div className="rows">{items.length?items.map((item,index)=><div className="activity" key={item.id}><span className={'round '+['blue','green','purple','orange'][index%4]}><I.History/></span><div><b>{item.title}</b><small>{item.description}</small></div><time>{relativeTime(item.createdAt)}</time></div>):<div className="dashboard-empty">No activity recorded yet.</div>}</div><a>Database activity <I.Database/></a></div>}
-function Services({items}){const total=items.reduce((sum,item)=>sum+item.value,0);return <div className="card panel services"><h3>Top Services</h3>{items.length?<div className="service-body"><div className="donut"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={items} dataKey="value" innerRadius={48} outerRadius={73} paddingAngle={2}>{items.map(s=><Cell key={s.name} fill={s.color}/>)}</Pie></PieChart></ResponsiveContainer><div><small>Total</small><b>{total}</b></div></div><div className="service-list">{items.map(s=><p key={s.name}><i style={{background:s.color}}/>{s.name}<b>{s.value}</b><small>({total?((s.value/total)*100).toFixed(1):0}%)</small></p>)}</div></div>:<div className="dashboard-empty">No services found in the database.</div>}<a>Database services <I.Database/></a></div>}
-function Users({items}){return <div className="card panel"><h3>Recent Users</h3><div className="rows">{items.length?items.map((person,idx)=><div className="person" key={person.id}><span className={'photo p'+idx}>{person.name.split(' ').map(part=>part[0]).slice(0,2).join('')}</span><div><b>{person.name}</b><small>{person.email}</small></div><em className={person.role.toLowerCase()}>{person.role}</em><time>{relativeTime(person.createdAt)}</time></div>):<div className="dashboard-empty">No users found.</div>}</div><a>Database users <I.Database/></a></div>}
-function Status({generatedAt}){return <div className="card status"><div><span className="status-icon"><I.ShieldCheck/></span><p><small>Admin API</small><b className="ok">Operational</b></p></div><div><span className="status-icon"><I.Database/></span><p><small>PostgreSQL</small><b className="ok">Connected</b></p></div><div><span className="status-icon"><I.LockKeyhole/></span><p><small>Dashboard Access</small><b>Protected session</b></p></div><div><span className="status-icon green"><I.RefreshCw/></span><p><small>Data refreshed</small><b>{new Date(generatedAt).toLocaleString()}</b></p></div></div>}
-function Dashboard(){const [state,setState]=useState({loading:true,data:null,error:''});const load=()=>{setState(current=>({...current,loading:true,error:''}));getDashboard().then(data=>setState({loading:false,data,error:''})).catch(error=>setState({loading:false,data:null,error:error.message}))};useEffect(load,[]);if(state.loading&&!state.data)return <div className="content dashboard-state"><I.LoaderCircle className="spin"/>Loading dashboard data...</div>;if(state.error)return <div className="content dashboard-state error"><I.CircleAlert/><b>Dashboard data could not be loaded</b><span>{state.error}</span><button onClick={load}>Try again</button></div>;const data=state.data;const stats=statConfig.map(([key,title,Icon,color])=>[title,data.totals[key].value,data.totals[key].change,Icon,color]);return <div className="content"><div className="welcome"><div><h1>Welcome back, Super Admin! 👋</h1><p>Live data from the Mikenium database.</p></div><button onClick={load} disabled={state.loading}><I.CalendarDays/> {formatRange(data.range)} {state.loading?<I.LoaderCircle className="spin"/>:<I.RefreshCw/>}</button></div><div className="stats">{stats.map(s=><StatCard key={s[0]} s={s}/>)}</div><div className="middle"><PlatformChart data={data.chart}/><Summary system={data.system}/></div><div className="bottom"><Activities items={data.recentActivities}/><Services items={data.topServices}/><Users items={data.recentUsers}/></div><Status generatedAt={data.generatedAt}/></div>}
-function CurrentPage({active}){if(active==='Dashboard')return <Dashboard/>;if(active==='Users')return <UsersPage/>;if(active==='Clients')return <ClientsPage/>;if(active==='Projects')return <ProjectsPage/>;if(active==='Services')return <AdminServicesPage/>;if(active==='Products')return <ProductsAdminPage/>;if(active==='Pricing')return <PricingAdminPage/>;if(active==='Blogs')return <BlogsAdminPage/>;if(active==='Testimonials')return <TestimonialsPage/>;if(active==='Partners')return <PartnersPage/>;if(active==='Contact Messages')return <ContactMessagesPage/>;if(active==='Pages')return <PagesAdminPage/>;if(active==='Menus')return <MenusPage/>;if(active==='Media Library')return <MediaLibraryPage/>;if(active==='Sliders')return <SlidersPage/>;if(active==='Roles & Permissions')return <RolesPermissionsPage/>;if(active==='Settings')return <SettingsAdminPage/>;if(active==='Activity Logs')return <ActivityLogsPage/>;if(active==='System Backup')return <SystemBackupAdminPage/>;if(active==='View Site')return <ViewSite/>;if(listingNames.includes(active))return <ListingPage name={active}/>;return <Dashboard/>}
-function AdminApp({user,onLogout}){
-  const [open,setOpen]=useState(false);
-  const [collapsed,setCollapsed]=useState(()=>localStorage.getItem('mikenium-admin-sidebar')==='collapsed');
-  const [active,setActive]=useState('Dashboard');
-  const [dark,setDark]=useState(()=>localStorage.getItem('mikenium-admin-theme')==='dark');
-  function changeTheme(){setDark(current=>{const next=!current;localStorage.setItem('mikenium-admin-theme',next?'dark':'light');return next;});}
-  function toggleNavigation(){if(window.matchMedia('(max-width: 850px)').matches)setOpen(value=>!value);else setCollapsed(value=>{const next=!value;localStorage.setItem('mikenium-admin-sidebar',next?'collapsed':'expanded');return next})}
-  const appClass=`app${dark?' dark-theme':''}${collapsed?' sidebar-collapsed':''}`;
-  return <div className={appClass}><Sidebar open={open} setOpen={setOpen} active={active} onSelect={setActive}/>{open&&<div className="scrim" onClick={()=>setOpen(false)}/>}<main><Header title={active} toggle={toggleNavigation} user={user} onLogout={onLogout} dark={dark} onThemeChange={changeTheme} onNavigate={setActive} collapsed={collapsed}/><CurrentPage active={active}/></main></div>
+const pageSeo={
+  '/':{title:'Software Development Company in Sri Lanka | Mikenium',description:'Mikenium designs and develops secure web, mobile, cloud, and custom software for ambitious businesses in Sri Lanka and worldwide.',keywords:'software development company Sri Lanka, custom software development, web development Sri Lanka, mobile app development'},
+  '/about':{title:'About Mikenium | Software Product Team in Sri Lanka',description:'Meet Mikenium, a Sri Lankan software product team combining strategy, human-centered design, and dependable engineering.'},
+  '/services':{title:'Software Development Services in Sri Lanka | Mikenium',description:'Explore custom software, web and mobile development, UI/UX design, cloud engineering, security, automation, and ongoing support.'},
+  '/portfolio':{title:'Software Development Portfolio & Case Studies | Mikenium',description:'Explore digital products and custom software engineered by Mikenium for measurable business outcomes.'},
+  '/products':{title:'Business Software Products Built by Mikenium',description:'Discover practical, scalable software products built by Mikenium to simplify operations and help modern teams grow.'},
+  '/pricing':{title:'Software Development Pricing & Plans | Mikenium',description:'Compare transparent software development and support plans from Mikenium, with flexible options for growing businesses.'},
+  '/blog':{title:'Software, AI & Product Development Insights | Mikenium',description:'Read practical insights from Mikenium on software engineering, AI, product strategy, design, security, and digital growth.'},
+  '/contact':{title:'Contact Mikenium | Start Your Software Project',description:'Talk to Mikenium about your software, web, mobile, cloud, or digital product project. Our team responds within one business day.'},
+  '/privacy-policy':{title:'Privacy Policy | Mikenium',description:'Learn how Mikenium collects, uses, protects, and retains personal information.'},
+  '/terms-of-service':{title:'Terms of Service | Mikenium',description:'Read the terms governing use of the Mikenium website and services.'},
+  '/cookie-policy':{title:'Cookie Policy | Mikenium',description:'Learn how Mikenium uses essential and optional cookies on this website.'}
+};
+function Loading(){return <div role="status" aria-live="polite" style={{minHeight:'60vh',display:'grid',placeItems:'center'}}>Loading…</div>}
+function NotFound(){return <main style={{minHeight:'70vh',display:'grid',placeItems:'center',textAlign:'center',padding:'3rem'}}><div><h1>Page not found</h1><p>The page you requested does not exist.</p><a href="/">Return to Mikenium</a></div></main>}
+export default function App(){
+  const path=window.location.pathname.replace(/\/$/,'')||'/';
+  if(path.startsWith('/admin'))return <><Seo title="Mikenium Administration" description="Mikenium private administration area." path={path} robots="noindex, nofollow, noarchive"/><Suspense fallback={<Loading/>}><AdminShell/></Suspense></>;
+  const isArticle=path.startsWith('/blog/');
+  const page=path==='/privacy-policy'?<LegalPage type="privacy"/>:path==='/terms-of-service'?<LegalPage type="terms"/>:path==='/cookie-policy'?<LegalPage type="cookies"/>:isArticle?<SingleBlogPage/>:path==='/about'?<AboutPage/>:path==='/services'?<ServicesPage/>:path==='/portfolio'?<PortfolioPage/>:path==='/products'?<ProductsPage/>:path==='/pricing'?<PricingPage/>:path==='/blog'?<BlogPage/>:path==='/contact'?<ContactPage/>:path==='/'?<PublicHome/>:<NotFound/>;
+  const seo=pageSeo[path];
+  return <SiteSettingsProvider><>{seo&&<Seo {...seo} path={path}/>} {!seo&&!isArticle&&<Seo title="Page Not Found | Mikenium" description="The requested page could not be found." path={path} robots="noindex, follow"/>}<Suspense fallback={<Loading/>}>{page}</Suspense><CookieConsent/></></SiteSettingsProvider>
 }
-function AdminGate(){
-  const [state,setState]=useState({loading:true,user:null});
-  useEffect(()=>{let mounted=true;getAdminSession().then(({user})=>mounted&&setState({loading:false,user})).catch(()=>mounted&&setState({loading:false,user:null}));return()=>{mounted=false}},[]);
-  async function signOut(){try{await logoutAdmin();}finally{setState({loading:false,user:null});}}
-  if(state.loading)return <div className="admin-auth-loading"><I.LoaderCircle className="spin"/><span>Checking secure session...</span></div>;
-  if(!state.user)return <AdminLogin onLogin={user=>setState({loading:false,user})}/>;
-  return <AdminApp user={state.user} onLogout={signOut}/>;
-}
-export default function App(){const path=window.location.pathname.replace(/\/$/,'')||'/';if(path.startsWith('/admin'))return <AdminGate/>;const page=path==='/privacy-policy'?<LegalPage type="privacy"/>:path==='/terms-of-service'?<LegalPage type="terms"/>:path==='/cookie-policy'?<LegalPage type="cookies"/>:path.startsWith('/blog/')?<SingleBlogPage/>:path==='/about'?<AboutPage/>:path==='/services'?<ServicesPage/>:path==='/portfolio'?<PortfolioPage/>:path==='/products'?<ProductsPage/>:path==='/pricing'?<PricingPage/>:path==='/blog'?<BlogPage/>:path==='/contact'?<ContactPage/>:<PublicHome/>;return <SiteSettingsProvider><>{page}<CookieConsent/></></SiteSettingsProvider>}

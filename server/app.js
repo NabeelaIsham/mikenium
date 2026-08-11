@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import {randomUUID} from 'crypto';
 import {fileURLToPath} from 'url';
 import path from 'path';
+import {readFile} from 'fs/promises';
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
 import userRoutes from './routes/users.js';
@@ -58,6 +59,32 @@ app.use(express.json({limit:'1mb'}));
 
 app.get('/api/health',(req,res)=>res.json({status:'ok'}));
 app.get('/api/ready',async(req,res)=>{try{await pool.query('SELECT 1');res.json({status:'ready',database:'ok'})}catch{res.status(503).json({status:'not-ready',database:'unavailable'})}});
+const publicPaths=['/','/about','/services','/portfolio','/products','/pricing','/blog','/contact','/privacy-policy','/terms-of-service','/cookie-policy'];
+const staticSeo={
+  '/':['Software Development Company in Sri Lanka | Mikenium','Mikenium designs and develops secure web, mobile, cloud, and custom software for ambitious businesses in Sri Lanka and worldwide.'],
+  '/about':['About Mikenium | Software Product Team in Sri Lanka','Meet Mikenium, a Sri Lankan software product team combining strategy, human-centered design, and dependable engineering.'],
+  '/services':['Software Development Services in Sri Lanka | Mikenium','Explore custom software, web and mobile development, UI/UX design, cloud engineering, security, automation, and ongoing support.'],
+  '/portfolio':['Software Development Portfolio & Case Studies | Mikenium','Explore digital products and custom software engineered by Mikenium for measurable business outcomes.'],
+  '/products':['Business Software Products Built by Mikenium','Discover practical, scalable software products built by Mikenium to simplify operations and help modern teams grow.'],
+  '/pricing':['Software Development Pricing & Plans | Mikenium','Compare transparent software development and support plans from Mikenium, with flexible options for growing businesses.'],
+  '/blog':['Software, AI & Product Development Insights | Mikenium','Read practical insights from Mikenium on software engineering, AI, product strategy, design, security, and digital growth.'],
+  '/contact':['Contact Mikenium | Start Your Software Project','Talk to Mikenium about your software, web, mobile, cloud, or digital product project. Our team responds within one business day.'],
+  '/privacy-policy':['Privacy Policy | Mikenium','Learn how Mikenium collects, uses, protects, and retains personal information.'],
+  '/terms-of-service':['Terms of Service | Mikenium','Read the terms governing use of the Mikenium website and services.'],
+  '/cookie-policy':['Cookie Policy | Mikenium','Learn how Mikenium uses essential and optional cookies on this website.']
+};
+const requestOrigin=req=>`${req.protocol}://${req.get('host')}`;
+const escapeAttribute=value=>String(value).replace(/[&<>\"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
+function injectSeo(html,{title,description,canonical,robots='index,follow'}){const safeTitle=escapeAttribute(title),safeDescription=escapeAttribute(description),safeCanonical=escapeAttribute(canonical);return html.replace(/<title>.*?<\/title>/,`<title>${safeTitle}</title>`).replace(/<meta name="description" content="[^"]*" \/>/,`<meta name="description" content="${safeDescription}" />`).replace(/<meta name="robots" content="[^"]*" \/>/,`<meta name="robots" content="${robots}" />`).replace(/<meta property="og:title" content="[^"]*" \/>/,`<meta property="og:title" content="${safeTitle}" />`).replace(/<meta property="og:description" content="[^"]*" \/>/,`<meta property="og:description" content="${safeDescription}" />`).replace('</head>',`<link rel="canonical" href="${safeCanonical}" /><meta property="og:url" content="${safeCanonical}" /></head>`)}
+app.get('/robots.txt',async(req,res,next)=>{try{const {rows}=await pool.query('SELECT seo,maintenance FROM site_settings WHERE id=1');const indexing=rows[0]?.seo?.allowIndexing!==false&&!rows[0]?.maintenance?.enabled;res.type('text/plain').send(indexing?`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nSitemap: ${requestOrigin(req)}/sitemap.xml\n`:'User-agent: *\nDisallow: /\n')}catch(error){next(error)}});
+app.get('/sitemap.xml',async(req,res,next)=>{try{
+  const [{rows},{rows:settingsRows}]=await Promise.all([pool.query(`SELECT slug,COALESCE(updated_at,published_at,scheduled_at) AS modified FROM blog_posts WHERE status='PUBLISHED' OR (status='SCHEDULED' AND scheduled_at<=now()) ORDER BY modified DESC`),pool.query('SELECT seo,maintenance FROM site_settings WHERE id=1')]);
+  const indexing=settingsRows[0]?.seo?.allowIndexing!==false&&!settingsRows[0]?.maintenance?.enabled;
+  const origin=requestOrigin(req),escape=value=>String(value).replace(/[<>&'\"]/g,char=>({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[char]));
+  const urls=indexing?[...publicPaths.map(path=>({path,modified:null})),...rows.map(row=>({path:`/blog/${encodeURIComponent(row.slug)}`,modified:row.modified}))]:[];
+  const body=urls.map(item=>`  <url><loc>${escape(origin+item.path)}</loc>${item.modified?`<lastmod>${new Date(item.modified).toISOString()}</lastmod>`:''}</url>`).join('\n');
+  res.type('application/xml').set('Cache-Control','public, max-age=3600').send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>`);
+}catch(error){next(error)}});
 app.use('/api/auth',authRoutes);
 app.use('/api/settings',publicSettingRoutes);
 app.use('/api/projects',publicProjectRoutes);
@@ -89,11 +116,19 @@ app.use('/api/admin/system-backups',systemBackupRoutes);
 
 app.use('/api',(req,res)=>res.status(404).json({message:'API endpoint not found'}));
 if(staticPath){
-  app.use(express.static(staticPath,{index:false,maxAge:env.isProduction?'1d':0}));
-  app.use((req,res,next)=>{
+  app.use(express.static(staticPath,{index:false,maxAge:env.isProduction?'30d':0,setHeaders:(res,filePath)=>{if(env.isProduction&&/[\\/]assets[\\/].+-[A-Za-z0-9_-]{8,}\.(?:css|js)$/.test(filePath))res.setHeader('Cache-Control','public, max-age=31536000, immutable')}}));
+  app.use(async(req,res,next)=>{
     if(req.method!=='GET'||!req.accepts('html'))return next();
-    res.set('Cache-Control','no-store');
-    res.sendFile(path.join(staticPath,'index.html'));
+    try{
+      res.set('Cache-Control','no-store');
+      const pathname=req.path.replace(/\/$/,'')||'/',isAdmin=pathname.startsWith('/admin'),isBlog=/^\/blog\/[^/]+$/.test(pathname);
+      let metadata=staticSeo[pathname];
+      if(isBlog){const slug=pathname.slice(6);const {rows}=await pool.query(`SELECT title,excerpt,seo_title,seo_description FROM blog_posts WHERE lower(slug)=lower($1) AND (status='PUBLISHED' OR (status='SCHEDULED' AND scheduled_at<=now()))`,[slug]);if(rows[0])metadata=[rows[0].seo_title||`${rows[0].title} | Mikenium`,rows[0].seo_description||rows[0].excerpt]}
+      const known=Boolean(metadata)||isAdmin;
+      const fallback=known?metadata||['Mikenium Administration','Mikenium private administration area.']:['Page Not Found | Mikenium','The requested page could not be found.'];
+      const html=await readFile(path.join(staticPath,'index.html'),'utf8');
+      res.status(known?200:404).send(injectSeo(html,{title:fallback[0],description:fallback[1],canonical:`${requestOrigin(req)}${pathname}`,robots:isAdmin||!known?'noindex,nofollow':'index,follow'}));
+    }catch(error){next(error)}
   });
 }
 app.use((req,res)=>res.status(404).json({message:'Not found'}));

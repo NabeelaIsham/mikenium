@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import * as I from 'lucide-react';
-import '../../styles/contact-page.css';
 import {submitContactEnquiry} from '../../services/public-api';
 import {companyContact,footerNavigation} from '../../config/site-contact';
 
@@ -14,7 +13,7 @@ const getChannels = () => [
 const reasons = [[I.Fingerprint,'Built around you','Solutions shaped around your goals, users, and workflow.'],[I.TimerReset,'Momentum, weekly','Clear progress, visible decisions, and reliable delivery.'],[I.ShieldCheck,'Secure by design','Quality and security considered at every layer.'],[I.Handshake,'A lasting partner','We stay invested well beyond the first release.']];
 const serviceOptions = ['Custom Software Development','Web Development','Mobile App Development','UI/UX Design','E-Commerce Development','Cloud & DevOps Solutions','SEO & Digital Marketing','AI Solutions & Automation','Website Maintenance & Support','IT Consulting','API Development & Integration','Other (Please Specify)'];
 
-function Logo(){return <a className="public-logo" href="/" aria-label="Mikenium home"><img src={companyContact.logoUrl} alt={companyContact.logoAlt}/></a>}
+function Logo(){return <a className="public-logo" href="/" aria-label="Mikenium home"><img src={companyContact.logoUrl} width="220" height="55" decoding="async" alt={companyContact.logoAlt}/></a>}
 function SiteButton({children,href='/contact'}){return <a className="site-button" href={href}>{children}<I.ArrowRight/></a>}
 
 function Header(){
@@ -27,7 +26,7 @@ function Header(){
   </header>
 }
 
-function Footer(){return <footer><div className="footer-glow"/><div className="cta"><div><span className="cta-label"><i/> LET’S CREATE TOGETHER</span><h2>Ready to build software<br/>that moves your business?</h2><p>Bring us the challenge. We’ll bring the strategy, design, and engineering to turn it into a product people value.</p></div><div className="cta-actions"><SiteButton href="#contact-form">Start a Conversation</SiteButton><a href={companyContact.emailHref}>{companyContact.email} <I.ArrowUpRight/></a></div></div><div className="footer-main"><div className="footer-about"><img src="/assets/mikenium-logo-transparent.png" alt="Mikenium — Building Smarter Software"/><p>We design and engineer secure digital products that help ambitious businesses grow with confidence.</p><span className="footer-socials">{companyContact.socialLinks.map(item=>{const Icon=item.Icon;return <a href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label} key={item.label}><Icon/></a>})}</span></div><div className="footer-links">{footerNavigation.map(section=><div key={section.title}><h4>{section.title}</h4>{section.links.map(link=><a href={link.href} key={link.label}>{link.label}</a>)}</div>)}</div><div className="footer-contact"><span><I.MapPin/></span><div><h4>Let’s talk about your next idea.</h4><a href={companyContact.emailHref}>{companyContact.email}</a>{companyContact.phones.map(phone=><a href={phone.href} key={phone.href}>{phone.label}</a>)}<small>{companyContact.address}</small></div></div></div><div className="footer-bottom"><p>© 2026 Mikenium. All rights reserved.</p><nav><a href="/">Privacy Policy</a><a href="/">Terms of Service</a><a href="/">Cookie Policy</a></nav><span><i/> All systems operational</span></div></footer>}
+function Footer(){return <footer><div className="footer-glow"/><div className="cta"><div><span className="cta-label"><i/> LET’S CREATE TOGETHER</span><h2>Ready to build software<br/>that moves your business?</h2><p>Bring us the challenge. We’ll bring the strategy, design, and engineering to turn it into a product people value.</p></div><div className="cta-actions"><SiteButton href="#contact-form">Start a Conversation</SiteButton><a href={companyContact.emailHref}>{companyContact.email} <I.ArrowUpRight/></a></div></div><div className="footer-main"><div className="footer-about"><img src="/assets/mikenium-logo-transparent.png" width="240" height="60" loading="lazy" decoding="async" alt="Mikenium — Building Smarter Software"/><p>We design and engineer secure digital products that help ambitious businesses grow with confidence.</p><span className="footer-socials">{companyContact.socialLinks.map(item=>{const Icon=item.Icon;return <a href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label} key={item.label}><Icon/></a>})}</span></div><div className="footer-links">{footerNavigation.map(section=><div key={section.title}><h4>{section.title}</h4>{section.links.map(link=><a href={link.href} key={link.label}>{link.label}</a>)}</div>)}</div><div className="footer-contact"><span><I.MapPin/></span><div><h4>Let’s talk about your next idea.</h4><a href={companyContact.emailHref}>{companyContact.email}</a>{companyContact.phones.map(phone=><a href={phone.href} key={phone.href}>{phone.label}</a>)}<small>{companyContact.address}</small></div></div></div><div className="footer-bottom"><p>© 2026 Mikenium. All rights reserved.</p><nav><a href="/">Privacy Policy</a><a href="/">Terms of Service</a><a href="/">Cookie Policy</a></nav><span><i/> All systems operational</span></div></footer>}
 
 export default function ContactPage(){
   const channels=getChannels();
@@ -57,7 +56,7 @@ export default function ContactPage(){
         </div>
         <div className="contact-console" aria-label="Mikenium communication network illustration">
           <div className="console-orbit orbit-a"><i/><i/><i/></div><div className="console-orbit orbit-b"/>
-          <div className="message-core"><div className="core-top"><span><i/> MIKENIUM CONNECT</span><small>ONLINE</small></div><div className="core-logo"><img src="/assets/mikenium-logo-transparent.png" alt=""/><span>Your next idea<br/><b>belongs in motion.</b></span></div><div className="signal-line"><i/><i/><i/><i/></div></div>
+          <div className="message-core"><div className="core-top"><span><i/> MIKENIUM CONNECT</span><small>ONLINE</small></div><div className="core-logo"><img src="/assets/mikenium-logo-transparent.png" width="1659" height="948" decoding="async" alt=""/><span>Your next idea<br/><b>belongs in motion.</b></span></div><div className="signal-line"><i/><i/><i/><i/></div></div>
           <span className="signal-node node-mail"><I.Mail/></span><span className="signal-node node-chat"><I.MessageSquareText/></span><span className="signal-node node-send"><I.Send/></span>
           <div className="response-chip"><i/><span><b>Team available</b><small>Kalutara South · GMT+5:30</small></span></div>
         </div>
