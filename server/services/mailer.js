@@ -24,6 +24,10 @@ function getTransporter(){
   return transporter;
 }
 
+export function verifyMailTransport(){
+  return getTransporter().verify();
+}
+
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
 const lines=value=>escapeHtml(value).replace(/\r?\n/g,'<br>');
 const headerText=value=>String(value??'').replace(/[\r\n]/g,' ').trim();

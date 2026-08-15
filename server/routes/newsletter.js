@@ -64,10 +64,17 @@ router.post('/unsubscribe',express.urlencoded({extended:false,limit:'2kb'}),asyn
   res.type('html').send('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>Unsubscribed</title><body><main><h1>Unsubscribed</h1><p>This address will no longer receive Mikenium Insights.</p><a href="/">Return to Mikenium</a></main></body></html>');
 });
 
-router.get('/confirm',async(req,res)=>{
+router.get('/confirm',(req,res)=>{
   res.set({'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});
   const parsed=z.string().regex(/^[a-f0-9]{64}$/).safeParse(req.query.token);
   if(!parsed.success)return res.status(400).type('text').send('Invalid confirmation link.');
+  res.type('html').send(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>Confirm subscription</title><body><main><h1>Confirm your Mikenium Insights subscription</h1><form method="post" action="/api/newsletter/confirm"><input type="hidden" name="token" value="${parsed.data}"><button type="submit">Confirm subscription</button></form></main></body></html>`);
+});
+
+router.post('/confirm',express.urlencoded({extended:false,limit:'2kb'}),async(req,res)=>{
+  res.set({'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});
+  const parsed=z.string().regex(/^[a-f0-9]{64}$/).safeParse(req.body?.token);
+  if(!parsed.success)return res.status(400).type('text').send('Invalid confirmation request.');
   const {rows}=await pool.query(`UPDATE newsletter_subscribers SET status='ACTIVE',confirmed_at=now(),confirmation_token_hash=NULL,confirmation_expires_at=NULL,updated_at=now() WHERE confirmation_token_hash=$1 AND confirmation_expires_at>now() RETURNING id`,[hash(parsed.data)]);
   if(!rows[0])return res.status(400).type('text').send('This confirmation link is invalid or has expired.');
   res.type('html').send('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>Subscription confirmed</title><body><main><h1>Subscription confirmed</h1><p>You are now subscribed to Mikenium Insights.</p><a href="/">Return to Mikenium</a></main></body></html>');

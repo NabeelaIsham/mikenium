@@ -71,6 +71,7 @@ curl --fail https://YOUR_DOMAIN/api/ready
 curl --head https://YOUR_DOMAIN/
 curl --head https://www.YOUR_DOMAIN/
 docker compose --env-file .env.production exec db pg_isready -U mikenium -d mikenium
+docker compose --env-file .env.production exec app npm run smtp:check
 ```
 
 Verify the contact form, SMTP delivery, admin login/logout, an image upload, an encrypted backup download, and a restore drill using non-production sample data before accepting real customer information.
