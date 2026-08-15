@@ -4,7 +4,7 @@ This deployment runs the React site and API in one application container, Postgr
 
 ## 1. Prepare DNS and the VPS
 
-Use an Ubuntu 24.04 LTS VPS with at least 2 GB RAM. In Namecheap Advanced DNS, create an `A` record for the chosen domain pointing to the VPS public IPv4 address. DNS must resolve before Caddy can issue a certificate.
+Use an Ubuntu 24.04 LTS VPS with at least 2 GB RAM (4 GB is recommended for a customer-facing deployment). In Namecheap Advanced DNS, create an `A` record for the root domain pointing to the VPS public IPv4 address and a `CNAME` record from `www` to the root domain. Preserve existing MX, SPF, DKIM, and DMARC records. DNS must resolve before Caddy can issue certificates for the root and `www` hostnames; Caddy redirects `www` to the root domain.
 
 Install current Docker Engine and the Docker Compose plugin using Docker's official Ubuntu instructions. Allow inbound TCP ports 22, 80, and 443 and UDP port 443 in both the VPS firewall and any provider firewall. Restrict SSH to key authentication and disable password-based root login.
 
@@ -69,6 +69,7 @@ The password must contain at least 16 characters. Use a unique password generate
 curl --fail https://YOUR_DOMAIN/api/health
 curl --fail https://YOUR_DOMAIN/api/ready
 curl --head https://YOUR_DOMAIN/
+curl --head https://www.YOUR_DOMAIN/
 docker compose --env-file .env.production exec db pg_isready -U mikenium -d mikenium
 ```
 

@@ -20,9 +20,16 @@ try{
   const approvals=JSON.parse(await readFile('.production-approvals.json','utf8'));
   const failures=[];
   for(const key of requiredEnv)if(!env[key]||/replace|example\.com|YOUR_/i.test(env[key]))failures.push(`${key} is missing or still uses an example value`);
-  if(env.JWT_SECRET?.length<32)failures.push('JWT_SECRET must contain at least 32 characters');
+  if(!/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i.test(env.DOMAIN||''))failures.push('DOMAIN must be a hostname such as mikenium.com, without a scheme or path');
+  if(!/^[a-zA-Z0-9._~-]{32,}$/.test(env.POSTGRES_PASSWORD||''))failures.push('POSTGRES_PASSWORD must contain at least 32 URL-safe characters');
+  if(env.JWT_SECRET?.length<64)failures.push('JWT_SECRET must contain at least 64 characters');
   if(!/^[a-f0-9]{64}$/i.test(env.BACKUP_ENCRYPTION_KEY||''))failures.push('BACKUP_ENCRYPTION_KEY must contain 64 hexadecimal characters');
-  if(!env.ALERT_WEBHOOK_URL?.startsWith('https://'))failures.push('ALERT_WEBHOOK_URL must use HTTPS');
+  if([env.POSTGRES_PASSWORD,env.JWT_SECRET,env.BACKUP_ENCRYPTION_KEY].filter(Boolean).some((value,index,array)=>array.indexOf(value)!==index))failures.push('Database, JWT, and backup encryption secrets must be different');
+  if(!/^[A-Z2-7]{16,128}$/i.test(env.SUPER_ADMIN_TOTP_SECRET||''))failures.push('SUPER_ADMIN_TOTP_SECRET must be a valid base32 secret');
+  try{if(new URL(env.ALERT_WEBHOOK_URL).protocol!=='https:')throw new Error()}catch{failures.push('ALERT_WEBHOOK_URL must be a valid HTTPS URL')}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.SUPER_ADMIN_EMAIL||''))failures.push('SUPER_ADMIN_EMAIL must be valid');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.CONTACT_TO_EMAIL||''))failures.push('CONTACT_TO_EMAIL must be valid');
+  if(!/^\//.test(env.BACKUP_OFFSITE_PATH||''))failures.push('BACKUP_OFFSITE_PATH must be an absolute Linux path');
   for(const key of requiredApprovals)if(approvals[key]!==true)failures.push(`${key} has not been approved`);
   if(failures.length){console.error(`Production release blocked:\n- ${failures.join('\n- ')}`);process.exit(1)}
   console.log('Production release checks passed.');
