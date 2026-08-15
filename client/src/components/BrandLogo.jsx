@@ -12,7 +12,7 @@ const logoAssets = {
 export default function BrandLogo({position = 'header', tone = 'dark', alt = 'Mikenium — Building Smarter Software', loading}) {
   const assets = logoAssets[position]?.[tone] || logoAssets.header.dark;
   const mobileBreakpoint = position === 'footer' ? '700px' : '520px';
-  return <picture className={`brand-logo-picture brand-logo-${position}`} data-brand-logo>
+  return <picture className={`brand-logo-picture brand-logo-${position} brand-logo-${tone}`} data-brand-logo>
     <source media={`(max-width: ${mobileBreakpoint})`} srcSet={assets.mobile}/>
     <img src={assets.web} alt={alt} loading={loading} decoding="async"/>
   </picture>;

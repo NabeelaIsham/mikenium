@@ -11,3 +11,11 @@ export async function fetchWithTimeout(url,options={},timeoutMs=15000){
     throw error;
   }finally{window.clearTimeout(timeout)}
 }
+
+const API_ORIGIN=(import.meta.env.VITE_API_URL||(import.meta.env.DEV?'http://localhost:5000':'')).replace(/\/$/,'');
+
+export function resolveAssetUrl(value){
+  if(!value)return '';
+  if(!API_ORIGIN||!String(value).startsWith('/uploads/'))return value;
+  return `${API_ORIGIN}${value}`;
+}
