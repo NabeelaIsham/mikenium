@@ -57,6 +57,7 @@ app.use(cors({
 app.use('/uploads',express.static(uploadsPath,{fallthrough:false,maxAge:env.isProduction?'7d':0,setHeaders:res=>res.setHeader('Cross-Origin-Resource-Policy','same-site')}));
 app.use(express.json({limit:'1mb'}));
 
+app.get('/api',(req,res)=>res.json({service:'mikenium-api',status:'ok',health:'/api/health',readiness:'/api/ready'}));
 app.get('/api/health',(req,res)=>res.json({status:'ok'}));
 app.get('/api/ready',async(req,res)=>{try{await pool.query('SELECT 1');res.json({status:'ready',database:'ok'})}catch{res.status(503).json({status:'not-ready',database:'unavailable'})}});
 const publicPaths=['/','/about','/services','/portfolio','/products','/pricing','/blog','/contact','/privacy-policy','/terms-of-service','/cookie-policy'];
