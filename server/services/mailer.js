@@ -6,6 +6,7 @@ const secure=String(process.env.SMTP_SECURE??port===465).toLowerCase()==='true';
 const user=process.env.SMTP_USER||process.env.SUPER_ADMIN_EMAIL;
 const pass=process.env.SMTP_PASS;
 const contactTo=process.env.CONTACT_TO_EMAIL||process.env.SUPER_ADMIN_EMAIL||user;
+const alertTo=process.env.ALERT_TO_EMAIL||contactTo;
 
 let transporter;
 function getTransporter(){
@@ -31,6 +32,18 @@ export function verifyMailTransport(){
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
 const lines=value=>escapeHtml(value).replace(/\r?\n/g,'<br>');
 const headerText=value=>String(value??'').replace(/[\r\n]/g,' ').trim();
+
+export async function sendOperationalAlertEmail({event,timestamp,details}){
+  const detailText=JSON.stringify(details||{},null,2);
+  return getTransporter().sendMail({
+    from:{name:'Mikenium Operations',address:user},
+    to:alertTo,
+    replyTo:user,
+    subject:headerText(`[Mikenium alert] ${event}`),
+    text:`Operational alert from mikenium-api\n\nEvent: ${event}\nTime: ${timestamp}\n\nDetails:\n${detailText}`,
+    html:`<div style="font-family:Arial,sans-serif;color:#17233a;line-height:1.6"><h2 style="color:#c62828">Mikenium operational alert</h2><p><strong>Event:</strong> ${escapeHtml(event)}<br><strong>Time:</strong> ${escapeHtml(timestamp)}</p><pre style="white-space:pre-wrap">${escapeHtml(detailText)}</pre></div>`
+  });
+}
 
 export async function sendContactNotification(message){
   const subject=`New website enquiry: ${message.subject}`;

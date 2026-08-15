@@ -23,7 +23,7 @@ chmod 600 .env.production
 
 Put the first generated value in `POSTGRES_PASSWORD`, the second in `JWT_SECRET`, the third in `BACKUP_ENCRYPTION_KEY`, and the base32 value in `SUPER_ADMIN_TOTP_SECRET`. Hex values avoid URL-escaping problems in the PostgreSQL connection string. Set `DOMAIN` to the hostname whose DNS record points to the VPS, without `https://`. Configure the SMTP values with an app-specific mailbox password.
 
-Set `BACKUP_OFFSITE_PATH` to a mounted directory that is replicated outside the VPS and outside the Namecheap account. A local directory on the same VPS does not qualify. Set `ALERT_WEBHOOK_URL` to an HTTPS endpoint that accepts JSON alerts and route it to an actively monitored channel.
+Set `BACKUP_OFFSITE_PATH` to a mounted directory that is replicated outside the VPS and outside the Namecheap account. A local directory on the same VPS does not qualify. When available, set `ALERT_WEBHOOK_URL` to an HTTPS endpoint that accepts JSON alerts. Otherwise leave it blank and set `ALERT_TO_EMAIL` to an actively monitored mailbox; it defaults to `CONTACT_TO_EMAIL`.
 
 Before starting production, add `SUPER_ADMIN_TOTP_SECRET` to a TOTP authenticator such as 1Password, Google Authenticator, Microsoft Authenticator, or Authy. Use account name `SUPER_ADMIN_EMAIL`, issuer `Mikenium`, a 30-second period, SHA-1, and six digits. Store the MFA secret in your password manager; losing both the authenticator and this secret will require replacing the environment value and reprovisioning the admin account.
 
@@ -72,6 +72,7 @@ curl --head https://YOUR_DOMAIN/
 curl --head https://www.YOUR_DOMAIN/
 docker compose --env-file .env.production exec db pg_isready -U mikenium -d mikenium
 docker compose --env-file .env.production exec app npm run smtp:check
+docker compose --env-file .env.production exec app npm run alerts:check
 ```
 
 Verify the contact form, SMTP delivery, admin login/logout, an image upload, an encrypted backup download, and a restore drill using non-production sample data before accepting real customer information.

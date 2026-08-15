@@ -64,7 +64,8 @@ services:
       AUDIT_RETENTION_DAYS: ${AUDIT_RETENTION_DAYS:-730}
       NEWSLETTER_RETENTION_DAYS: ${NEWSLETTER_RETENTION_DAYS:-365}
       BACKUP_OFFSITE_DIR: /mnt/offsite-backups
-      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:?Set ALERT_WEBHOOK_URL in .env.production}
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+      ALERT_TO_EMAIL: ${ALERT_TO_EMAIL:-}
     volumes:
       - uploads_data:/opt/mikenium/server/uploads
       - backups_data:/opt/mikenium/server/backups

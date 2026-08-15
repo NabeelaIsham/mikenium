@@ -12,6 +12,7 @@
     "db:init": "node scripts/init-db.js",
     "db:check": "node scripts/check-db.js",
     "smtp:check": "node scripts/check-smtp.js",
+    "alerts:check": "node scripts/check-alerts.js",
     "admin:create": "node scripts/create-super-admin.js",
     "mfa:generate": "node scripts/generate-mfa-secret.js"
   },

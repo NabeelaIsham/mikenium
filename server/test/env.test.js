@@ -8,6 +8,7 @@ test('accepts a complete production environment',()=>{
   const result=validateEnvironment(valid);
   assert.equal(result.isProduction,true);
   assert.deepEqual(result.clientOrigins,['https://example.com']);
+  assert.equal(validateEnvironment({...valid,ALERT_WEBHOOK_URL:''}).alertEmail,'contact@example.com');
 });
 
 test('rejects missing production secrets',()=>{

@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-const productionRequired=['DATABASE_URL','JWT_SECRET','BACKUP_ENCRYPTION_KEY','SUPER_ADMIN_EMAIL','SUPER_ADMIN_TOTP_SECRET','CLIENT_URL','SMTP_HOST','SMTP_USER','SMTP_PASS','CONTACT_TO_EMAIL','BACKUP_OFFSITE_DIR','ALERT_WEBHOOK_URL'];
+const productionRequired=['DATABASE_URL','JWT_SECRET','BACKUP_ENCRYPTION_KEY','SUPER_ADMIN_EMAIL','SUPER_ADMIN_TOTP_SECRET','CLIENT_URL','SMTP_HOST','SMTP_USER','SMTP_PASS','CONTACT_TO_EMAIL','BACKUP_OFFSITE_DIR'];
 
 export function validateEnvironment(source=process.env){
   const isProduction=source.NODE_ENV==='production';
@@ -65,7 +65,8 @@ export function validateEnvironment(source=process.env){
     auditRetentionDays:positiveInteger('AUDIT_RETENTION_DAYS',730),
     newsletterRetentionDays:positiveInteger('NEWSLETTER_RETENTION_DAYS',365),
     backupOffsiteDir:(source.BACKUP_OFFSITE_DIR||'').trim(),
-    alertWebhookUrl:(source.ALERT_WEBHOOK_URL||'').trim()
+    alertWebhookUrl:(source.ALERT_WEBHOOK_URL||'').trim(),
+    alertEmail:(source.ALERT_TO_EMAIL||source.CONTACT_TO_EMAIL||'').trim()
   };
 }
 
