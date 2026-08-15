@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-3 -3 188 52.9">
+  <defs>
+    <style>
+      .cls-1 {
+        letter-spacing: .07em;
+      }
+
+      .cls-2 {
+        letter-spacing: .04em;
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-4 {
+        letter-spacing: .05em;
+      }
+
+      .cls-5 {
+        fill: url(#linear-gradient-4);
+      }
+
+      .cls-6 {
+        letter-spacing: .05em;
+      }
+
+      .cls-7 {
+        letter-spacing: .05em;
+      }
+
+      .cls-8 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-9 {
+        fill: url(#linear-gradient-5);
+      }
+
+      .cls-10 {
+        letter-spacing: .07em;
+      }
+
+      .cls-11 {
+        letter-spacing: .05em;
+      }
+
+      .cls-12 {
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: 600;
+        font-size: 18.67px;
+        letter-spacing: .16em;
+      }
+
+      .cls-13 {
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: 500;
+        font-size: 5.78px;
+        font-variation-settings: 'wght' 194, 'wdth' 100, 'slnt' 0;
+      }
+
+      .cls-14 {
+        letter-spacing: .06em;
+      }
+
+      .cls-15 {
+        fill: url(#linear-gradient-7);
+      }
+
+      .cls-16 {
+        fill: url(#linear-gradient-6);
+      }
+
+      .cls-17 {
+        letter-spacing: .09em;
+      }
+
+      .cls-18 {
+        fill: url(#linear-gradient);
+      }
+
+      .cls-19 {
+        letter-spacing: .06em;
+      }
+
+      .cls-20 {
+        letter-spacing: .06em;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="-3.13" y1="24.34" x2="19.59" y2="17.91" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#061534"/>
+      <stop offset=".13" stop-color="#05183b"/>
+      <stop offset="1" stop-color="#002c6d"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="23.61" y1="14.3" x2="47.77" y2="14.3" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#037eff"/>
+      <stop offset=".17" stop-color="#0989fd"/>
+      <stop offset=".48" stop-color="#19a8f9"/>
+      <stop offset=".88" stop-color="#33d9f2"/>
+      <stop offset="1" stop-color="#3deaf0"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-3" x1="41.57" y1="34.19" x2="49.35" y2="27.99" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#061534"/>
+      <stop offset=".28" stop-color="#04193f"/>
+      <stop offset=".78" stop-color="#01255d"/>
+      <stop offset="1" stop-color="#002c6d"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-4" x1="13.29" y1="32.65" x2="32" y2="43.16" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#037eff"/>
+      <stop offset=".17" stop-color="#0583fe"/>
+      <stop offset=".37" stop-color="#0d91fc"/>
+      <stop offset=".59" stop-color="#1aaaf8"/>
+      <stop offset=".83" stop-color="#2cccf4"/>
+      <stop offset="1" stop-color="#3deaf0"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-5" x1="103.75" y1="18.73" x2="114.14" y2="18.73" xlink:href="#linear-gradient-2"/>
+    <linearGradient id="linear-gradient-6" x1="60.08" y1="32.76" x2="78.54" y2="32.76" xlink:href="#linear-gradient-2"/>
+    <linearGradient id="linear-gradient-7" x1="158.32" y1="32.76" x2="176.78" y2="32.76" xlink:href="#linear-gradient-2"/>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g>
+      <g>
+        <path class="cls-18" d="M9.44,39.91L0,46.9V0l23.61,16.82v11.77l-14.36-10.8s.26,22.12.19,22.12Z"/>
+        <polygon class="cls-3" points="23.61 16.82 23.61 28.59 47.77 9.53 47.77 0 23.61 16.82"/>
+        <polygon class="cls-8" points="37.83 19.52 47.77 12.1 47.77 46.9 37.83 39.99 37.83 19.52"/>
+        <polygon class="cls-5" points="11.81 23.69 11.81 36.5 24.19 46.9 33.27 40.29 11.81 23.69"/>
+      </g>
+      <g>
+        <text class="cls-12" transform="translate(58.85 25.14) scale(1.04 1)"><tspan x="0" y="0" xml:space="preserve">MIK  NIUM</tspan></text>
+        <rect x="103.75" y="19.63" width="2.05" height="3.5"/>
+        <rect class="cls-9" x="103.75" y="17.59" width="10.39" height="2.28"/>
+        <rect class="cls-16" x="60.08" y="32.54" width="18.46" height=".45"/>
+        <rect class="cls-15" x="158.32" y="32.54" width="18.46" height=".45"/>
+        <rect x="103.75" y="13.12" width="10.68" height="1.96"/>
+        <rect x="103.75" y="23.13" width="10.68" height="1.93"/>
+        <text class="cls-13" transform="translate(81.42 34.27) scale(1.11 1)"><tspan class="cls-6" x="0" y="0">B</tspan><tspan class="cls-14" x="3.94" y="0">uilding </tspan><tspan class="cls-11" x="24.54" y="0">S</tspan><tspan class="cls-6" x="28.21" y="0">m</tspan><tspan class="cls-19" x="33.32" y="0">a</tspan><tspan class="cls-17" x="36.6" y="0">r</tspan><tspan class="cls-14" x="39" y="0">t </tspan><tspan class="cls-20" x="42.87" y="0">S</tspan><tspan class="cls-1" x="46.64" y="0">o</tspan><tspan class="cls-4" x="50.09" y="0">f</tspan><tspan class="cls-10" x="51.83" y="0">t</tspan><tspan class="cls-2" x="53.92" y="0">w</tspan><tspan class="cls-19" x="58.46" y="0">a</tspan><tspan class="cls-7" x="61.75" y="0">r</tspan><tspan class="cls-14" x="63.92" y="0">e</tspan></text>
+      </g>
+    </g>
+  </g>
+</svg>

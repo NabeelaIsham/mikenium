@@ -1,6 +1,7 @@
 import React,{useState} from 'react';
 import * as I from 'lucide-react';
 import { loginAdmin } from '../../services/admin/admin-api';
+import BrandLogo from '../../components/BrandLogo';
 
 export default function AdminLogin({onLogin}){
   const [email,setEmail]=useState('info@mikenium.com');
@@ -16,7 +17,7 @@ export default function AdminLogin({onLogin}){
     finally{setLoading(false);}
   }
   return <div className="admin-login-page">
-    <div className="admin-login-brand"><img src="/assets/mikenium-logo-transparent.png" alt="Mikenium"/><span>Secure administration portal</span></div>
+    <div className="admin-login-brand"><BrandLogo alt="Mikenium — Building Smarter Software"/><span>Secure administration portal</span></div>
     <form className="admin-login-card" onSubmit={submit}>
       <div className="admin-login-icon"><I.ShieldCheck/></div>
       <h1>Super Admin Login</h1><p>Sign in to manage the Mikenium platform.</p>

@@ -7,11 +7,13 @@ import './styles/admin/system-admin.css';
 import './styles/admin/admin-login.css';
 import './styles/admin/admin-theme.css';
 import './styles/admin/header-controls.css';
+import './styles/admin/admin-branding.css';
 import { ListingPage, UsersPage, ClientsPage, ProjectsPage, ServicesPage as AdminServicesPage, ProductsAdminPage, PricingAdminPage, BlogsAdminPage, TestimonialsPage, PartnersPage, ContactMessagesPage, PagesAdminPage, SettingsPage, BackupPage, ViewSite, listingNames } from './pages/admin/AdminPages';
 import { MenusPage, MediaLibraryPage, SlidersPage } from './pages/admin/CmsPages';
 import { RolesPermissionsPage, SettingsAdminPage, ActivityLogsPage, SystemBackupAdminPage } from './pages/admin/SystemAdminPages';
 import AdminLogin from './pages/admin/AdminLogin';
 import { getAdminSession, getContactMessages, getDashboard, logoutAdmin, updateContactMessage } from './services/admin/admin-api';
+import BrandLogo from './components/BrandLogo';
 
 const navGroups = [
   { label: '', items: [['Dashboard', I.LayoutDashboard]] },
@@ -27,7 +29,7 @@ const statConfig=[
 const relativeTime=value=>{const seconds=Math.max(1,Math.floor((Date.now()-new Date(value).getTime())/1000));if(seconds<60)return `${seconds}s ago`;if(seconds<3600)return `${Math.floor(seconds/60)} mins ago`;if(seconds<86400)return `${Math.floor(seconds/3600)} hours ago`;return `${Math.floor(seconds/86400)} days ago`};
 const formatRange=range=>range?`${new Date(range.from).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})} - ${new Date(range.to).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}`:'Last 7 days';
 
-function Logo(){return <div className="logo"><div className="mark"><i/><b/></div><div><strong>MIKENIUM</strong><small>Building Smarter Software</small></div></div>}
+function Logo(){return <div className="logo"><BrandLogo alt="Mikenium — Building Smarter Software"/></div>}
 function Sidebar({open,setOpen,active,onSelect}) { const go=n=>{onSelect(n);setOpen(false)};return <aside className={open?'sidebar open':'sidebar'}>
   <Logo/><nav>{navGroups.map((g,gi)=><section key={gi}>{g.label&&<label>{g.label}</label>}{g.items.map(([n,Icon])=><button onClick={()=>go(n)} className={n===active?'active':''} key={n}><Icon size={18}/><span>{n}</span></button>)}</section>)}</nav>
   <button className="visit" onClick={()=>{window.location.href='/'}}><I.Globe2 size={18}/> View Site <I.ExternalLink size={16}/></button><footer>© 2024 Mikenium<br/><span>All Rights Reserved.</span></footer>

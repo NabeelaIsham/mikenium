@@ -1,0 +1,51 @@
+.app .sidebar .logo {
+  display: block;
+  width: 184px;
+  height: 49px;
+  margin: 0 0 28px;
+  background: transparent;
+}
+
+.app .sidebar .logo .brand-logo-picture,
+.app .sidebar .logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
+  background: transparent;
+}
+
+.admin-settings-logo {
+  width: 178px;
+  height: 47px;
+  display: block;
+  background: transparent;
+}
+
+.admin-settings-logo .brand-logo-picture,
+.admin-settings-logo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  background: transparent;
+}
+
+.admin-settings-logo .brand-logo-dark {
+  display: none;
+}
+
+.app.dark-theme .admin-settings-logo .brand-logo-light {
+  display: none;
+}
+
+.app.dark-theme .admin-settings-logo .brand-logo-dark {
+  display: block;
+}
+
+@media (max-width: 1200px) {
+  .app .sidebar .logo {
+    width: 164px;
+  }
+}
