@@ -45,7 +45,12 @@ app.use((req,res,next)=>{const supplied=req.get('x-request-id')||'';req.id=/^[a-
 app.use((req,res,next)=>{const started=process.hrtime.bigint();res.on('finish',()=>console.log(JSON.stringify({level:'info',event:'HTTP_REQUEST',requestId:req.id,method:req.method,path:req.originalUrl.split('?')[0],status:res.statusCode,durationMs:Number(process.hrtime.bigint()-started)/1e6})));next()});
 app.use(helmet({
   crossOriginResourcePolicy:{policy:'same-site'},
-  contentSecurityPolicy:{directives:{imgSrc:["'self'",'data:','https:'],upgradeInsecureRequests:env.isProduction?[]:null}}
+  contentSecurityPolicy:{directives:{
+    scriptSrc:["'self'",'https://www.googletagmanager.com'],
+    connectSrc:["'self'",'https://www.google-analytics.com','https://analytics.google.com','https://region1.google-analytics.com'],
+    imgSrc:["'self'",'data:','https:'],
+    upgradeInsecureRequests:env.isProduction?[]:null
+  }}
 }));
 app.use(cors({
   credentials:true,

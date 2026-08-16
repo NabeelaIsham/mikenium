@@ -1,5 +1,6 @@
 import React,{lazy,Suspense} from 'react';
 import CookieConsent from './components/CookieConsent';
+import GoogleAnalytics from './components/GoogleAnalytics';
 import Seo from './components/Seo';
 import {SiteSettingsProvider} from './context/SiteSettingsContext';
 import './styles/public-home.css';
@@ -48,5 +49,5 @@ export default function App(){
   const isArticle=path.startsWith('/blog/');
   const page=path==='/privacy-policy'?<LegalPage type="privacy"/>:path==='/terms-of-service'?<LegalPage type="terms"/>:path==='/cookie-policy'?<LegalPage type="cookies"/>:isArticle?<SingleBlogPage/>:path==='/about'?<AboutPage/>:path==='/services'?<ServicesPage/>:path==='/portfolio'?<PortfolioPage/>:path==='/products'?<ProductsPage/>:path==='/pricing'?<PricingPage/>:path==='/blog'?<BlogPage/>:path==='/contact'?<ContactPage/>:path==='/'?<PublicHome/>:<NotFound/>;
   const seo=pageSeo[path];
-  return <SiteSettingsProvider><>{seo&&<Seo {...seo} path={path}/>} {!seo&&!isArticle&&<Seo title="Page Not Found | Mikenium" description="The requested page could not be found." path={path} robots="noindex, follow"/>}<Suspense fallback={<Loading/>}>{page}</Suspense><CookieConsent/></></SiteSettingsProvider>
+  return <SiteSettingsProvider><>{seo&&<Seo {...seo} path={path}/>} {!seo&&!isArticle&&<Seo title="Page Not Found | Mikenium" description="The requested page could not be found." path={path} robots="noindex, follow"/>}<Suspense fallback={<Loading/>}>{page}</Suspense><GoogleAnalytics/><CookieConsent/></></SiteSettingsProvider>
 }
