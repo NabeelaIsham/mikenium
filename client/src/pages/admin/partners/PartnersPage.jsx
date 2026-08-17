@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import * as I from 'lucide-react';
 import {createPartner,deletePartner,getPartners,updatePartner,uploadPartnerLogo} from '../../../services/admin/admin-api';
+import {isPreviewableAssetUrl,resolveAssetUrl} from '../../../services/http';
 
 const labels={PUBLISHED:'Published',DRAFT:'Draft',INACTIVE:'Inactive'};
 const icons={building:I.Building2,layers:I.Layers3,cloud:I.Cloud,data:I.CircleDotDashed,network:I.Network,hexagon:I.Hexagon,badge:I.Badge,globe:I.Globe2,briefcase:I.BriefcaseBusiness,handshake:I.Handshake};
@@ -24,8 +25,8 @@ function PartnerModal({partner,onClose,onSave,saving,error}){
     <label>Fallback icon<select name="icon" value={form.icon} onChange={change}>{Object.keys(icons).map(value=><option value={value} key={value}>{value[0].toUpperCase()+value.slice(1)}</option>)}</select></label>
     <label>Status<select name="status" value={form.status} onChange={change}>{Object.entries(labels).map(([value,label])=><option value={value} key={value}>{label}</option>)}</select></label>
     <label>Display order<input type="number" min="0" max="999" name="order" value={form.order} onChange={change}/></label>
-    <label className="wide">Logo URL<input name="logoUrl" value={form.logoUrl} onChange={change} placeholder="Upload a logo or enter its URL"/></label>
-    <label className="wide project-image-upload"><span>Upload partner logo</span><input id="partner-logo" type="file" accept="image/jpeg,image/png,image/webp" onChange={event=>event.target.files[0]&&upload(event.target.files[0])}/><label className="project-upload-box partner-upload-box" htmlFor="partner-logo">{form.logoUrl?<img src={form.logoUrl} alt="Partner logo preview"/>:<><I.UploadCloud/><b>{uploading?'Uploading...':'Choose partner logo'}</b><small>JPG, PNG or WebP · max 3 MB</small></>}</label>{uploadError&&<em>{uploadError}</em>}</label>
+    <label className="wide">Logo URL or uploaded path<input name="logoUrl" value={form.logoUrl} onChange={change} placeholder="/uploads/partners/... or https://..."/></label>
+    <label className="wide project-image-upload"><span>Upload partner logo</span><input id="partner-logo" type="file" accept="image/jpeg,image/png,image/webp" onChange={event=>event.target.files[0]&&upload(event.target.files[0])}/><label className="project-upload-box partner-upload-box" htmlFor="partner-logo">{isPreviewableAssetUrl(form.logoUrl)?<img src={resolveAssetUrl(form.logoUrl)} alt="Partner logo preview"/>:<><I.UploadCloud/><b>{uploading?'Uploading...':'Choose partner logo'}</b><small>JPG, PNG or WebP · max 3 MB</small></>}</label>{uploadError&&<em>{uploadError}</em>}</label>
   </div><div className="modal-actions"><button type="button" onClick={onClose}>Cancel</button><button className="primary" disabled={saving||uploading}>{saving?<I.LoaderCircle className="spin"/>:<I.Save/>}{saving?'Saving...':'Save partner'}</button></div></form></div>;
 }
 

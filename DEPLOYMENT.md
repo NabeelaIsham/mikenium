@@ -77,6 +77,8 @@ docker compose --env-file .env.production exec app npm run alerts:check
 
 Verify the contact form, SMTP delivery, admin login/logout, an image upload, an encrypted backup download, and a restore drill using non-production sample data before accepting real customer information.
 
+Uploaded images are stored in the persistent `uploads_data` Docker volume. The application repairs ownership of that volume at startup before dropping to the unprivileged Node user. Do not use `docker compose down --volumes` during routine deployments: it removes the upload and database volumes. After a server migration, restore the upload volume together with PostgreSQL so database image paths still have matching files.
+
 ## 5. Backups and operations
 
 Application backups in the `backups_data` volume are AES-256-GCM encrypted and are copied to `BACKUP_OFFSITE_PATH`. That path must itself be a separately replicated disk, remote filesystem, or object-storage-backed mount. Backup creation uses a repeatable-read database snapshot, serializes concurrent backup jobs, rejects oversized archives, and enforces the configured storage capacity. Also take periodic `pg_dump` exports and test restoration. Keep at least one copy outside the Namecheap account.

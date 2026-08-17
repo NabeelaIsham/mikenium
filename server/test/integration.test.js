@@ -18,6 +18,7 @@ test('production HTTP and database smoke test',{skip:process.env.RUN_INTEGRATION
     const health=await fetch(`${base}/api/health`);assert.equal(health.status,200);assert.equal((await health.json()).status,'ok');
     const ready=await fetch(`${base}/api/ready`);assert.equal(ready.status,200);assert.equal((await ready.json()).database,'ok');
     const settings=await fetch(`${base}/api/settings`);assert.equal(settings.status,200);assert.ok((await settings.json()).settings);
+    const missingUpload=await fetch(`${base}/uploads/projects/${randomUUID()}.png`);assert.equal(missingUpload.status,404);assert.equal((await missingUpload.json()).message,'Uploaded file not found');
     const protectedRoute=await fetch(`${base}/api/admin/users`);assert.equal(protectedRoute.status,401);
     const invalidContact=await fetch(`${base}/api/contact`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});assert.equal(invalidContact.status,400);
     const fakeToken='a'.repeat(64);
@@ -35,10 +36,18 @@ test('production HTTP and database smoke test',{skip:process.env.RUN_INTEGRATION
       const session=await fetch(`${base}/api/auth/super-admin/session`,{headers:{Cookie:cookie,'User-Agent':'mikenium-ci'}});assert.equal(session.status,200);
       const protectedWithSession=await fetch(`${base}/api/admin/users`,{headers:{Cookie:cookie,'User-Agent':'mikenium-ci'}});assert.equal(protectedWithSession.status,200);
       const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZpWQAAAAASUVORK5CYII=','base64');
-      const upload=await fetch(`${base}/api/admin/projects/image-upload`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'image/png','Origin':'http://localhost:5173','Sec-Fetch-Site':'same-origin','User-Agent':'mikenium-ci'},body:png});assert.equal(upload.status,201);
-      const {imageUrl}=await upload.json();
-      const uploadedImage=await fetch(`${base}${imageUrl}`);assert.equal(uploadedImage.status,200);assert.match(uploadedImage.headers.get('content-type')||'',/^image\/png/);
-      await unlink(path.join(fileURLToPath(new URL('../uploads/',import.meta.url)),imageUrl.replace('/uploads/','')));
+      const uploadCases=[
+        ['/api/admin/projects/image-upload','imageUrl','/uploads/projects/'],
+        ['/api/admin/products/image-upload','imageUrl','/uploads/products/'],
+        ['/api/admin/blogs/image-upload','imageUrl','/uploads/blogs/'],
+        ['/api/admin/partners/logo-upload','logoUrl','/uploads/partners/']
+      ];
+      for(const [route,key,prefix] of uploadCases){
+        const upload=await fetch(`${base}${route}`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'image/png','Origin':'http://localhost:5173','Sec-Fetch-Site':'same-origin','User-Agent':'mikenium-ci'},body:png});assert.equal(upload.status,201,route);
+        const imageUrl=(await upload.json())[key];assert.match(imageUrl,new RegExp(`^${prefix}`));
+        const uploadedImage=await fetch(`${base}${imageUrl}`);assert.equal(uploadedImage.status,200,imageUrl);assert.match(uploadedImage.headers.get('content-type')||'',/^image\/png/);
+        await unlink(path.join(fileURLToPath(new URL('../uploads/',import.meta.url)),imageUrl.replace('/uploads/','')));
+      }
       const logout=await fetch(`${base}/api/auth/super-admin/logout`,{method:'POST',headers:{Cookie:cookie,'Origin':'http://localhost:5173','Sec-Fetch-Site':'same-origin','User-Agent':'mikenium-ci'}});assert.equal(logout.status,204);
       const endedSession=await fetch(`${base}/api/auth/super-admin/session`,{headers:{Cookie:cookie,'User-Agent':'mikenium-ci'}});assert.equal(endedSession.status,403);
 

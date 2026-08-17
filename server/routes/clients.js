@@ -20,7 +20,7 @@ const clientSchema=z.object({
 });
 const updateSchema=clientSchema.partial();
 const listSchema=z.object({q:z.string().trim().max(120).optional(),status:z.enum(['ACTIVE','INACTIVE']).optional(),industry:z.string().trim().max(100).optional()});
-const serialize=row=>({id:row.id,name:row.company_name,location:row.location,contact:row.contact_name,title:row.contact_title||'',email:row.email,phone:row.phone||'',industry:row.industry,status:row.status,revenue:Number(row.revenue),createdAt:row.created_at,updatedAt:row.updated_at,projectCount:Number(row.project_count||0)});
+const serialize=row=>({id:row.id,name:row.company_name,location:row.location,contact:row.contact_name,title:row.contact_title||'',email:row.email,phone:row.phone||'',industry:row.industry,status:row.status,revenue:Number(row.revenue),revenueCurrency:'LKR',createdAt:row.created_at,updatedAt:row.updated_at,projectCount:Number(row.project_count||0)});
 const audit=(userId,action,ip,metadata)=>pool.query('INSERT INTO admin_audit_logs(user_id,action,ip_address,metadata) VALUES($1,$2,$3,$4)',[userId,action,ip,JSON.stringify(metadata)]);
 function databaseError(error,res){if(error.code==='23505')return res.status(409).json({message:'A client with this email already exists'});throw error;}
 
@@ -35,7 +35,7 @@ router.get('/',async(req,res)=>{
     pool.query(`SELECT c.*,count(p.id)::int AS project_count FROM clients c LEFT JOIN projects p ON p.client_id=c.id ${condition} GROUP BY c.id ORDER BY c.created_at DESC LIMIT 500`,values),
     pool.query(`SELECT count(*)::int AS total,count(*) FILTER(WHERE status='ACTIVE')::int AS active,count(*) FILTER(WHERE status='INACTIVE')::int AS inactive,coalesce(sum(revenue),0)::numeric AS revenue,(SELECT count(*)::int FROM projects WHERE client_id IS NOT NULL) AS projects FROM clients`)
   ]);
-  res.set('Cache-Control','no-store').json({clients:records.rows.map(serialize),stats:{...stats.rows[0],revenue:Number(stats.rows[0].revenue)}});
+  res.set('Cache-Control','no-store').json({clients:records.rows.map(serialize),stats:{...stats.rows[0],revenue:Number(stats.rows[0].revenue),revenueCurrency:'LKR'}});
 });
 
 router.get('/:id',async(req,res)=>{const {rows}=await pool.query('SELECT c.*,count(p.id)::int AS project_count FROM clients c LEFT JOIN projects p ON p.client_id=c.id WHERE c.id=$1 GROUP BY c.id',[req.params.id]);if(!rows[0])return res.status(404).json({message:'Client not found'});res.set('Cache-Control','no-store').json({client:serialize(rows[0])});});

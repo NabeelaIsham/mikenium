@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import * as I from 'lucide-react';
 import { createProject,deleteProject,getClients,getProject,getProjects,updateProject,uploadProjectImage } from '../../../services/admin/admin-api';
+import {isPreviewableAssetUrl,resolveAssetUrl} from '../../../services/http';
 
 const categories=['Web Development','Mobile Development','UI/UX Design','Cloud Solutions','E-commerce'];
 const statusLabels={PLANNED:'Planned',IN_PROGRESS:'In Progress',ON_HOLD:'On Hold',COMPLETED:'Completed',CANCELLED:'Cancelled'};
@@ -26,8 +27,8 @@ function ProjectModal({project,clients,onClose,onSave,saving}){
     <label>Start date<input name="startDate" type="date" value={form.startDate} onChange={change}/></label><label>Deadline<input name="deadline" type="date" value={form.deadline} onChange={change}/></label>
     <label className="wide">Public result<input name="result" value={form.result} onChange={change} placeholder="e.g. +42% faster operations"/></label><label className="wide">Public tags<input name="tags" value={form.tags} onChange={change} placeholder="React, SaaS, Automation"/></label>
     <label className="wide">Published project URL<input name="projectUrl" type="url" value={form.projectUrl} onChange={change} placeholder="https://your-live-project.com"/></label>
-    <label className="wide project-image-upload">Project image<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={uploadImage} disabled={uploading}/><span className="project-upload-box">{form.imageUrl?<img src={form.imageUrl} alt="Project preview"/>:<I.ImagePlus/>}<b>{uploading?'Uploading image...':form.imageUrl?'Choose another image':'Click to upload project image'}</b><small>JPG, PNG, WebP or GIF · maximum 5 MB</small></span>{uploadError&&<em>{uploadError}</em>}</label>
-    <label className="wide">External image URL (optional)<input name="imageUrl" type="url" value={form.imageUrl} onChange={change} placeholder="Uploaded image URL appears here"/></label>
+    <label className="wide project-image-upload">Project image<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={uploadImage} disabled={uploading}/><span className="project-upload-box">{isPreviewableAssetUrl(form.imageUrl)?<img src={resolveAssetUrl(form.imageUrl)} alt="Project preview"/>:<I.ImagePlus/>}<b>{uploading?'Uploading image...':form.imageUrl?'Choose another image':'Click to upload project image'}</b><small>JPG, PNG, WebP or GIF · maximum 5 MB</small></span>{uploadError&&<em>{uploadError}</em>}</label>
+    <label className="wide">Image URL or uploaded path (optional)<input name="imageUrl" type="text" value={form.imageUrl} onChange={change} placeholder="/uploads/projects/... or https://..."/></label>
     <label>Public website<select name="published" value={String(form.published)} onChange={change}><option value="true">Published</option><option value="false">Hidden</option></select></label><label>Featured<select name="featured" value={String(form.featured)} onChange={change}><option value="false">No</option><option value="true">Yes</option></select></label>
   </div><div className="modal-actions"><button type="button" onClick={onClose}>Cancel</button><button className="primary" disabled={saving||uploading}>{saving||uploading?<I.LoaderCircle className="spin"/>:editing?<I.Save/>:<I.Plus/>}{uploading?'Uploading...':saving?'Saving...':editing?'Save Changes':'Add Project'}</button></div></form></div>
 }

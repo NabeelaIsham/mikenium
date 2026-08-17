@@ -59,7 +59,8 @@ app.use(cors({
     callback(new Error('Origin is not allowed'));
   }
 }));
-app.use('/uploads',express.static(uploadsPath,{fallthrough:false,maxAge:env.isProduction?'7d':0,setHeaders:res=>res.setHeader('Cross-Origin-Resource-Policy','same-site')}));
+app.use('/uploads',express.static(uploadsPath,{fallthrough:true,maxAge:env.isProduction?'7d':0,setHeaders:res=>res.setHeader('Cross-Origin-Resource-Policy','same-site')}));
+app.use('/uploads',(req,res)=>res.status(404).set('Cache-Control','no-store').json({message:'Uploaded file not found'}));
 app.use(express.json({limit:'1mb'}));
 
 app.get('/api',(req,res)=>res.json({service:'mikenium-api',status:'ok',health:'/api/health',readiness:'/api/ready'}));

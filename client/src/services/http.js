@@ -19,3 +19,8 @@ export function resolveAssetUrl(value){
   if(!API_ORIGIN||!String(value).startsWith('/uploads/'))return value;
   return `${API_ORIGIN}${value}`;
 }
+
+export function isPreviewableAssetUrl(value){
+  const input=String(value||'').trim();
+  return input.startsWith('/')&&!input.startsWith('//')||/^https?:\/\//i.test(input);
+}
