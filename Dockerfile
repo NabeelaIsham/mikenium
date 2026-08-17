@@ -1,16 +1,16 @@
-FROM node:22-alpine AS client-build
+FROM node:26-alpine AS client-build
 WORKDIR /build/client
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ ./
 RUN npm run build
 
-FROM node:22-alpine AS server-dependencies
+FROM node:26-alpine AS server-dependencies
 WORKDIR /build/server
 COPY server/package*.json ./
 RUN npm ci --omit=dev
 
-FROM node:22-alpine
+FROM node:26-alpine
 ENV NODE_ENV=production PORT=5000 STATIC_DIR=/opt/mikenium/public
 RUN apk add --no-cache tini su-exec
 WORKDIR /opt/mikenium/server
