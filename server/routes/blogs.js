@@ -72,6 +72,10 @@ router.post('/',async(req,res)=>{
 });
 router.patch('/:id',async(req,res)=>{
   const parsed=updateSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json(validationError(parsed.error));
+  const existing=(await pool.query('SELECT status,scheduled_at FROM blog_posts WHERE id=$1',[req.params.id])).rows[0];
+  if(!existing)return res.status(404).json({message:'Blog post not found'});
+  const scheduledAt=Object.hasOwn(parsed.data,'scheduledAt')?parsed.data.scheduledAt:existing.scheduled_at;
+  if((parsed.data.status??existing.status)==='SCHEDULED'&&!scheduledAt)return res.status(400).json({message:'Choose a scheduled publishing date'});
   const columns={title:'title',slug:'slug',excerpt:'excerpt',category:'category',authorName:'author_name',authorTitle:'author_title',authorBio:'author_bio',authorAvatarUrl:'author_avatar_url',coverImageUrl:'cover_image_url',coverCaption:'cover_caption',readingMinutes:'reading_minutes',tags:'tags',blocks:'content_blocks',seoTitle:'seo_title',seoDescription:'seo_description',featured:'is_featured',status:'status',scheduledAt:'scheduled_at'};
   const fields=[],values=[];for(const [key,raw] of Object.entries(parsed.data)){if(key==='slug'&&!raw)continue;let value=key==='blocks'?JSON.stringify(raw):raw;if(['authorAvatarUrl','coverImageUrl','scheduledAt'].includes(key)&&!value)value=null;values.push(value);fields.push(`${columns[key]}=$${values.length}`);}
   if(parsed.data.status==='PUBLISHED'){fields.push('published_at=COALESCE(published_at,now())');}if(!fields.length)return res.status(400).json({message:'No changes were provided'});values.push(req.params.id);

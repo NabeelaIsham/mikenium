@@ -21,6 +21,35 @@ The repository includes a hardened Docker deployment for a single Namecheap VPS:
 
 Database startup uses checksum-protected versioned migrations. CI runs unit tests, PostgreSQL-backed HTTP smoke tests, dependency audits, the client build, and a container build. A production rollout must also pass `npm run release:check`, which verifies that the external legal, claims, monitoring, off-site backup, and restore-drill approvals have been recorded locally.
 
+## Verification
+
+Run `npm run check` for server unit checks and the production frontend build.
+For database verification, set `TEST_DATABASE_URL` to a PostgreSQL connection
+with permission to create databases, then run `npm run test:integration`.
+This command creates and drops a uniquely named test database, ignores the
+application `.env`, and disables external email and alerts. It fails when the
+test connection is missing instead of silently skipping integration tests.
+
+For browser verification, run `npx playwright install chromium` once, then
+`npm run test:e2e` with the same `TEST_DATABASE_URL`. On Windows, an existing
+Edge installation can be used by setting `BROWSER_CHANNEL=msedge` instead.
+
+```powershell
+$env:TEST_DATABASE_URL='postgresql://TEST_USER:TEST_PASSWORD@127.0.0.1:5432/postgres'
+$env:BROWSER_CHANNEL='msedge'
+npm.cmd run test:e2e
+```
+
+The tests cover admin CRUD, draft/public visibility, contact handling,
+newsletter token transitions, MFA sessions, image uploads, encrypted backup
+restoration, public page rendering, and a browser-created service. They do not
+verify delivery to real mailboxes, a live VPS, or external backup replication.
+
+Run `npm run release:prepare` to create missing production configuration and
+approval templates without overwriting existing files. Populate them with
+the existing deployment values; do not replace live secrets with new ones.
+See [OFFSITE-BACKUP.md](./OFFSITE-BACKUP.md) for the remaining storage setup.
+
 ## Super-admin security model
 
 - There is no public-user login endpoint; only the separately protected company super-admin flow is exposed.

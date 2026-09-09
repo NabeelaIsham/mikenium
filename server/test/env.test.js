@@ -30,6 +30,7 @@ test('requires PostgreSQL URLs and valid ports',()=>{
 
 test('rejects malformed backup keys',()=>{
   assert.throws(()=>validateEnvironment({...valid,BACKUP_ENCRYPTION_KEY:'short'}),/BACKUP_ENCRYPTION_KEY/);
+  assert.equal(validateEnvironment({...valid,BACKUP_ENCRYPTION_KEY:` ${valid.BACKUP_ENCRYPTION_KEY} `}).backupEncryptionKey,valid.BACKUP_ENCRYPTION_KEY);
 });
 
 test('requires a valid production MFA secret',()=>{

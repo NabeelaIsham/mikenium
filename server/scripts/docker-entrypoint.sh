@@ -6,4 +6,4 @@ set -eu
 mkdir -p /opt/mikenium/server/uploads /opt/mikenium/server/backups
 chown -R node:node /opt/mikenium/server/uploads /opt/mikenium/server/backups
 
-exec su-exec node sh -c 'node scripts/init-db.js && exec node src.js'
+exec su-exec node sh -c 'node scripts/check-offsite.js && node scripts/init-db.js && exec node src.js'

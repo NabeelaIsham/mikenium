@@ -10,7 +10,13 @@
     "test": "npm test --prefix server",
     "test:integration": "npm run test:integration --prefix server",
     "check": "npm run check --prefix server && npm run check --prefix client",
-    "release:check": "node scripts/release-check.js"
+    "release:check": "node scripts/release-check.js",
+    "release:prepare": "node scripts/release-prepare.js",
+    "security:check": "node scripts/security-check.js",
+    "test:e2e": "npm run build && node server/scripts/run-integration.js --browser"
   },
-  "devDependencies": { "concurrently": "^9.1.2" }
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "concurrently": "^9.1.2"
+  }
 }

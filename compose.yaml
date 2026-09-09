@@ -50,6 +50,7 @@ services:
       SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:?Set SUPER_ADMIN_EMAIL in .env.production}
       SUPER_ADMIN_TOTP_SECRET: ${SUPER_ADMIN_TOTP_SECRET:?Set SUPER_ADMIN_TOTP_SECRET in .env.production}
       CLIENT_URL: https://${DOMAIN:?Set DOMAIN in .env.production}
+      CSP_IMAGE_ORIGINS: ${CSP_IMAGE_ORIGINS:-}
       SMTP_HOST: ${SMTP_HOST:?Set SMTP_HOST in .env.production}
       SMTP_PORT: ${SMTP_PORT:-465}
       SMTP_SECURE: ${SMTP_SECURE:-true}
@@ -69,7 +70,11 @@ services:
     volumes:
       - uploads_data:/opt/mikenium/server/uploads
       - backups_data:/opt/mikenium/server/backups
-      - ${BACKUP_OFFSITE_PATH:?Set BACKUP_OFFSITE_PATH in .env.production}:/mnt/offsite-backups
+      - type: bind
+        source: ${BACKUP_OFFSITE_PATH:?Set BACKUP_OFFSITE_PATH in .env.production}
+        target: /mnt/offsite-backups
+        bind:
+          create_host_path: false
     tmpfs:
       - /tmp:size=64m,mode=1777
     security_opt:

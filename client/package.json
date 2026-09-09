@@ -3,15 +3,22 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "scripts": { "dev": "vite", "build": "vite build", "check": "vite build", "preview": "vite preview" },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/add-integrity.js",
+    "check": "npm run build",
+    "preview": "vite preview"
+  },
   "dependencies": {
+    "@fontsource-variable/dm-sans": "^5.3.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/manrope": "^5.3.0",
     "@vitejs/plugin-react": "^4.4.1",
-    "vite": "^6.3.5",
-    "typescript": "~5.8.3",
+    "lucide-react": "^0.468.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "lucide-react": "^0.468.0",
-    "recharts": "^2.15.1"
-  },
-  "devDependencies": {}
+    "recharts": "^2.15.1",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  }
 }

@@ -4,18 +4,27 @@ import {randomUUID} from 'node:crypto';
 import {stat,unlink} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {spawn} from 'node:child_process';
+import {verifyWorkflows} from '../testing/workflows.js';
 
 test('production HTTP and database smoke test',{skip:process.env.RUN_INTEGRATION_TESTS!=='true'},async()=>{
   const [{default:app},{pool},{runMigrations}]=await Promise.all([
     import('../app.js'),import('../config/db.js'),import('../services/migrations.js')
   ]);
-  await runMigrations({logger:{log(){}}});
-  const server=app.listen(0,'127.0.0.1');
-  await new Promise((resolve,reject)=>{server.once('listening',resolve);server.once('error',reject)});
+  let server;
   try{
+    await runMigrations({logger:{log(){}}});
+    server=app.listen(0,'127.0.0.1');
+    await new Promise((resolve,reject)=>{server.once('listening',resolve);server.once('error',reject)});
     const base=`http://127.0.0.1:${server.address().port}`;
+    const {env}=await import('../config/env.js');
+    env.clientOrigins.push(base);
     const api=await fetch(`${base}/api`);assert.equal(api.status,200);assert.equal((await api.json()).service,'mikenium-api');
     const health=await fetch(`${base}/api/health`);assert.equal(health.status,200);assert.equal((await health.json()).status,'ok');
+    const csp=health.headers.get('content-security-policy')||'';
+    assert.match(csp,/(?:^|;)style-src 'self'(?:;|$)/);
+    assert.match(csp,/(?:^|;)font-src 'self'(?:;|$)/);
+    assert.doesNotMatch(csp,/'unsafe-inline'|(?:^|\s)https:(?:;|\s|$)|\*/);
     const ready=await fetch(`${base}/api/ready`);assert.equal(ready.status,200);assert.equal((await ready.json()).database,'ok');
     const settings=await fetch(`${base}/api/settings`);assert.equal(settings.status,200);assert.ok((await settings.json()).settings);
     const missingUpload=await fetch(`${base}/uploads/projects/${randomUUID()}.png`);assert.equal(missingUpload.status,404);assert.equal((await missingUpload.json()).message,'Uploaded file not found');
@@ -35,6 +44,16 @@ test('production HTTP and database smoke test',{skip:process.env.RUN_INTEGRATION
       const cookie=login.headers.get('set-cookie')?.split(';')[0];assert.match(cookie||'',/^admin_session=/);
       const session=await fetch(`${base}/api/auth/super-admin/session`,{headers:{Cookie:cookie,'User-Agent':'mikenium-ci'}});assert.equal(session.status,200);
       const protectedWithSession=await fetch(`${base}/api/admin/users`,{headers:{Cookie:cookie,'User-Agent':'mikenium-ci'}});assert.equal(protectedWithSession.status,200);
+      await verifyWorkflows({base,cookie,pool});
+      if(process.env.STATIC_DIR){
+        const checker=spawn(process.execPath,[fileURLToPath(new URL('../../scripts/security-check.js',import.meta.url)),base],{stdio:'inherit',windowsHide:true});
+        const exitCode=await new Promise((resolve,reject)=>{checker.once('error',reject);checker.once('exit',resolve)});
+        assert.equal(exitCode,0,'Website security verification command');
+      }
+      if(process.env.RUN_BROWSER_TESTS==='true'){
+        const {verifyBrowser}=await import('../testing/browser.js');
+        await verifyBrowser({base,cookie,pool});
+      }
       const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZpWQAAAAASUVORK5CYII=','base64');
       const uploadCases=[
         ['/api/admin/projects/image-upload','imageUrl','/uploads/projects/'],
@@ -65,7 +84,7 @@ test('production HTTP and database smoke test',{skip:process.env.RUN_INTEGRATION
       await pool.query('DELETE FROM services WHERE id=$1',[id]);
     }
   }finally{
-    await new Promise(resolve=>server.close(resolve));
+    if(server)await new Promise(resolve=>server.close(resolve));
     await pool.end();
   }
 });

@@ -20,7 +20,7 @@
 - [x] Large photographic PNG assets converted to compressed JPEG assets
 - [x] Below-the-fold and CMS images use lazy loading and asynchronous decoding
 - [x] Important images include intrinsic dimensions and the primary visual receives high fetch priority
-- [x] Google Fonts consolidated into one request with early connection hints
+- [x] Version-locked DM Sans, Inter, and Manrope fonts served locally with the application
 - [x] Fingerprinted production assets receive one-year immutable caching; other static assets receive a 30-day cache
 - [x] Brotli/Zstandard or gzip response compression enabled at the production proxy
 

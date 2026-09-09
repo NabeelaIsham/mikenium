@@ -8,7 +8,7 @@ const router=Router();
 router.use(requireSuperAdmin);
 router.param('id',(req,res,next,id)=>z.string().uuid().safeParse(id).success?next():res.status(400).json({message:'Invalid pricing plan ID'}));
 
-const nullablePrice=z.union([z.coerce.number().min(0).max(99999999),z.literal(''),z.null()]).optional();
+const nullablePrice=z.preprocess(value=>typeof value==='string'&&!value.trim()?null:value,z.union([z.null(),z.coerce.number().min(0).max(99999999)])).optional();
 const baseSchema=z.object({
   name:z.string().trim().min(2).max(120),
   eyebrow:z.string().trim().max(80).default(''),
@@ -46,6 +46,11 @@ router.post('/',async(req,res)=>{
 router.patch('/:id',async(req,res)=>{
   const parsed=updateSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({message:parsed.error.issues[0]?.message||'Invalid pricing plan'});
   const columns={name:'name',eyebrow:'eyebrow',description:'description',monthlyPrice:'monthly_price',annualPrice:'annual_monthly_price',monthlyPriceLkr:'monthly_price_lkr',annualPriceLkr:'annual_monthly_price_lkr',monthlyPriceAud:'monthly_price_aud',annualPriceAud:'annual_monthly_price_aud',billingSuffix:'billing_suffix',features:'features',ctaLabel:'cta_label',ctaUrl:'cta_url',icon:'icon',custom:'is_custom',popular:'is_popular',status:'status',order:'display_order'};
+  const existing=(await pool.query('SELECT * FROM pricing_plans WHERE id=$1',[req.params.id])).rows[0];
+  if(!existing)return res.status(404).json({message:'Pricing plan not found'});
+  const custom=parsed.data.custom??existing.is_custom;
+  if(!custom&&priceKeys.some(key=>(Object.hasOwn(parsed.data,key)?parsed.data[key]:existing[columns[key]])==null))return res.status(400).json({message:'Monthly and annual prices are required for USD, LKR and AUD'});
+  if(custom)for(const key of priceKeys)parsed.data[key]=null;
   const fields=[];const values=[];for(const [key,raw] of Object.entries(parsed.data)){let value=raw;if(priceKeys.includes(key)&&value==='')value=null;values.push(value);fields.push(`${columns[key]}=$${values.length}`);}if(!fields.length)return res.status(400).json({message:'No changes were provided'});values.push(req.params.id);
   try{const {rows}=await pool.query(`UPDATE pricing_plans SET ${fields.join(',')},updated_at=now() WHERE id=$${values.length} RETURNING *`,values);if(!rows[0])return res.status(404).json({message:'Pricing plan not found'});await audit(req.user.sub,'PRICING_PLAN_UPDATED',req.ip,{targetPricingPlanId:req.params.id,description:`Updated pricing plan ${rows[0].name}`});res.json({plan:serialize(rows[0])});}catch(error){if(error.code==='23505')return res.status(409).json({message:'A pricing plan with this name already exists'});throw error;}
 });

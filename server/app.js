@@ -32,6 +32,7 @@ import activityLogRoutes from './routes/activity-logs.js';
 import systemBackupRoutes from './routes/system-backups.js';
 import {pool} from './config/db.js';
 import {env} from './config/env.js';
+import {securityPolicy} from './config/security-policy.js';
 import {rateLimit} from './middleware/rate-limit.js';
 import {sendOperationalAlert} from './services/alerts.js';
 import {requireTrustedBrowserOrigin} from './middleware/browser-origin.js';
@@ -45,12 +46,7 @@ app.use((req,res,next)=>{const supplied=req.get('x-request-id')||'';req.id=/^[a-
 app.use((req,res,next)=>{const started=process.hrtime.bigint();res.on('finish',()=>console.log(JSON.stringify({level:'info',event:'HTTP_REQUEST',requestId:req.id,method:req.method,path:req.originalUrl.split('?')[0],status:res.statusCode,durationMs:Number(process.hrtime.bigint()-started)/1e6})));next()});
 app.use(helmet({
   crossOriginResourcePolicy:{policy:'same-site'},
-  contentSecurityPolicy:{directives:{
-    scriptSrc:["'self'",'https://www.googletagmanager.com'],
-    connectSrc:["'self'",'https://www.google-analytics.com','https://analytics.google.com','https://region1.google-analytics.com'],
-    imgSrc:["'self'",'data:','https:'],
-    upgradeInsecureRequests:env.isProduction?[]:null
-  }}
+  contentSecurityPolicy:securityPolicy(env)
 }));
 app.use(cors({
   credentials:true,
@@ -125,24 +121,28 @@ app.use('/api',(req,res)=>res.status(404).json({message:'API endpoint not found'
 if(staticPath){
   app.use(express.static(staticPath,{index:false,maxAge:env.isProduction?'30d':0,setHeaders:(res,filePath)=>{if(env.isProduction&&/[\\/]assets[\\/].+-[A-Za-z0-9_-]{8,}\.(?:css|js)$/.test(filePath))res.setHeader('Cache-Control','public, max-age=31536000, immutable')}}));
   app.use(async(req,res,next)=>{
-    if(req.method!=='GET'||!req.accepts('html'))return next();
+    if(!['GET','HEAD'].includes(req.method)||!req.accepts('html'))return next();
     try{
       res.set('Cache-Control','no-store');
-      const pathname=req.path.replace(/\/$/,'')||'/',isAdmin=pathname.startsWith('/admin'),isBlog=/^\/blog\/[^/]+$/.test(pathname);
+      const pathname=req.path.replace(/\/$/,'')||'/',isAdmin=pathname==='/admin'||pathname.startsWith('/admin/'),isBlog=/^\/blog\/[^/]+$/.test(pathname);
       let metadata=staticSeo[pathname];
       if(isBlog){const slug=pathname.slice(6);const {rows}=await pool.query(`SELECT title,excerpt,seo_title,seo_description FROM blog_posts WHERE lower(slug)=lower($1) AND (status='PUBLISHED' OR (status='SCHEDULED' AND scheduled_at<=now()))`,[slug]);if(rows[0])metadata=[rows[0].seo_title||`${rows[0].title} | Mikenium`,rows[0].seo_description||rows[0].excerpt]}
       const known=Boolean(metadata)||isAdmin;
       const fallback=known?metadata||['Mikenium Administration','Mikenium private administration area.']:['Page Not Found | Mikenium','The requested page could not be found.'];
       const html=await readFile(path.join(staticPath,'index.html'),'utf8');
-      res.status(known?200:404).send(injectSeo(html,{title:fallback[0],description:fallback[1],canonical:`${requestOrigin(req)}${pathname}`,robots:isAdmin||!known?'noindex,nofollow':'index,follow'}));
+      const settings=isAdmin?{}:(await pool.query('SELECT seo,maintenance FROM site_settings WHERE id=1')).rows[0]||{};
+      const maintenance=!isAdmin&&known&&settings.maintenance?.enabled;
+      const noIndex=isAdmin||!known||maintenance||settings.seo?.allowIndexing===false;
+      if(maintenance)res.set('Retry-After','3600');
+      res.status(maintenance?503:known?200:404).send(injectSeo(html,{title:fallback[0],description:fallback[1],canonical:`${requestOrigin(req)}${pathname}`,robots:noIndex?'noindex,nofollow':'index,follow'}));
     }catch(error){next(error)}
   });
 }
 app.use((req,res)=>res.status(404).json({message:'Not found'}));
 app.use((error,req,res,next)=>{
-  const status=error.type==='entity.too.large'?413:error.message==='Origin is not allowed'?403:500;
+  const status=error.type==='entity.too.large'?413:error.type==='entity.parse.failed'?400:error.message==='Origin is not allowed'?403:500;
   if(status===500){console.error(JSON.stringify({level:'error',requestId:req.id,message:error.message,stack:env.isProduction?undefined:error.stack}));void sendOperationalAlert('HTTP_500',{requestId:req.id,path:req.originalUrl.split('?')[0],message:error.message})}
-  res.status(status).json({message:status===413?'Upload or request body is too large':status===403?'Origin is not allowed':'Unexpected server error',requestId:req.id});
+  res.status(status).json({message:status===413?'Upload or request body is too large':status===400?'Invalid JSON request body':status===403?'Origin is not allowed':'Unexpected server error',requestId:req.id});
 });
 
 export default app;

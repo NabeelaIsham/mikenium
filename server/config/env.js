@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import {parseImageOrigins} from './security-policy.js';
 
 const productionRequired=['DATABASE_URL','JWT_SECRET','BACKUP_ENCRYPTION_KEY','SUPER_ADMIN_EMAIL','SUPER_ADMIN_TOTP_SECRET','CLIENT_URL','SMTP_HOST','SMTP_USER','SMTP_PASS','CONTACT_TO_EMAIL','BACKUP_OFFSITE_DIR'];
 
@@ -55,8 +56,9 @@ export function validateEnvironment(source=process.env){
     databaseUrl:source.DATABASE_URL,
     jwtSecret:source.JWT_SECRET,
     clientOrigins:[...new Set(clientOrigins)],
+    cspImageOrigins:parseImageOrigins(source.CSP_IMAGE_ORIGINS),
     staticDir:source.STATIC_DIR||'',
-    backupEncryptionKey:source.BACKUP_ENCRYPTION_KEY||'',
+    backupEncryptionKey:(source.BACKUP_ENCRYPTION_KEY||'').trim(),
     superAdminTotpSecret:totpSecret,
     backupStorageLimitBytes:positiveInteger('BACKUP_STORAGE_LIMIT_BYTES',5*1024*1024*1024),
     backupMaxBytes:positiveInteger('BACKUP_MAX_BYTES',1024*1024*1024),

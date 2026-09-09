@@ -1,4 +1,5 @@
 import React,{useEffect} from 'react';
+import {useSiteSettings} from '../context/site-settings';
 
 const SITE_NAME='Mikenium';
 const DEFAULT_IMAGE='/assets/mikenium-logo-transparent.png';
@@ -15,6 +16,9 @@ function upsertLink(rel,href){
 }
 
 export default function Seo({title,description,path=window.location.pathname,image=DEFAULT_IMAGE,type='website',robots='index, follow',schema,keywords=''}){
+  const settings=useSiteSettings();
+  if(settings?.seo?.allowIndexing===false||settings?.maintenance?.enabled)robots='noindex, nofollow';
+  if(image===DEFAULT_IMAGE&&settings?.seo?.ogImageUrl)image=settings.seo.ogImageUrl;
   const schemaJson=JSON.stringify(schema||null);
   useEffect(()=>{
     const canonical=new URL(path||'/',window.location.origin).href;

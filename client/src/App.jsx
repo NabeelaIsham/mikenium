@@ -45,7 +45,7 @@ function Loading(){return <div role="status" aria-live="polite" style={{minHeigh
 function NotFound(){return <main style={{minHeight:'70vh',display:'grid',placeItems:'center',textAlign:'center',padding:'3rem'}}><div><h1>Page not found</h1><p>The page you requested does not exist.</p><a href="/">Return to Mikenium</a></div></main>}
 export default function App(){
   const path=window.location.pathname.replace(/\/$/,'')||'/';
-  if(path.startsWith('/admin'))return <><Seo title="Mikenium Administration" description="Mikenium private administration area." path={path} robots="noindex, nofollow, noarchive"/><Suspense fallback={<Loading/>}><AdminShell/></Suspense></>;
+  if(path==='/admin'||path.startsWith('/admin/'))return <><Seo title="Mikenium Administration" description="Mikenium private administration area." path={path} robots="noindex, nofollow, noarchive"/><Suspense fallback={<Loading/>}><AdminShell/></Suspense></>;
   const isArticle=path.startsWith('/blog/');
   const page=path==='/privacy-policy'?<LegalPage type="privacy"/>:path==='/terms-of-service'?<LegalPage type="terms"/>:path==='/cookie-policy'?<LegalPage type="cookies"/>:isArticle?<SingleBlogPage/>:path==='/about'?<AboutPage/>:path==='/services'?<ServicesPage/>:path==='/portfolio'?<PortfolioPage/>:path==='/products'?<ProductsPage/>:path==='/pricing'?<PricingPage/>:path==='/blog'?<BlogPage/>:path==='/contact'?<ContactPage/>:path==='/'?<PublicHome/>:<NotFound/>;
   const seo=pageSeo[path];

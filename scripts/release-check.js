@@ -1,4 +1,5 @@
 import {readFile} from 'node:fs/promises';
+import {parseImageOrigins} from '../server/config/security-policy.js';
 
 function parseEnv(content){
   const result={};
@@ -19,6 +20,7 @@ try{
   const env=parseEnv(await readFile('.env.production','utf8'));
   const approvals=JSON.parse(await readFile('.production-approvals.json','utf8'));
   const failures=[];
+  try{parseImageOrigins(env.CSP_IMAGE_ORIGINS)}catch(error){failures.push(error.message)}
   for(const key of requiredEnv)if(!env[key]||/replace|example\.com|YOUR_/i.test(env[key]))failures.push(`${key} is missing or still uses an example value`);
   if(!/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i.test(env.DOMAIN||''))failures.push('DOMAIN must be a hostname such as mikenium.com, without a scheme or path');
   if(!/^[a-zA-Z0-9._~-]{32,}$/.test(env.POSTGRES_PASSWORD||''))failures.push('POSTGRES_PASSWORD must contain at least 32 URL-safe characters');
