@@ -7,7 +7,7 @@
 - [x] Open Graph and Twitter sharing metadata
 - [x] `Organization`, `WebSite`, and `WebPage` JSON-LD; `BlogPosting` JSON-LD for articles
 - [x] Dynamic `/sitemap.xml`, including every published or due scheduled article
-- [x] `/robots.txt` with sitemap discovery and blocks for `/admin` and `/api`
+- [x] `/robots.txt` with sitemap discovery and blocks for `/admin` and private APIs, with public content APIs allowed for rendering
 - [x] Admin, maintenance, missing pages, and missing articles marked `noindex`
 - [x] Unknown static routes return HTTP 404 instead of a soft-404 homepage
 - [x] Sitemap and crawler access respect the CMS “Search Indexing” and maintenance switches

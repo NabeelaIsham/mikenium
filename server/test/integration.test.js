@@ -27,6 +27,14 @@ test('production HTTP and database smoke test',{skip:process.env.RUN_INTEGRATION
     assert.doesNotMatch(csp,/'unsafe-inline'|(?:^|\s)https:(?:;|\s|$)|\*/);
     const ready=await fetch(`${base}/api/ready`);assert.equal(ready.status,200);assert.equal((await ready.json()).database,'ok');
     const settings=await fetch(`${base}/api/settings`);assert.equal(settings.status,200);assert.ok((await settings.json()).settings);
+    const robots=await (await fetch(`${base}/robots.txt`)).text();
+    assert.match(robots,/Disallow: \/api\//);
+    for(const route of ['settings','projects','services','products','pricing','blogs','testimonials','partners']){
+      assert.ok(robots.includes(`Allow: /api/${route}$\n`),`${route} data is crawlable for rendering`);
+      assert.ok(robots.includes(`Allow: /api/${route}/\n`),`${route} detail data is crawlable for rendering`);
+    }
+    assert.ok(!robots.includes('Allow: /api/admin'));
+    assert.ok(!robots.includes('Allow: /api/auth'));
     const missingUpload=await fetch(`${base}/uploads/projects/${randomUUID()}.png`);assert.equal(missingUpload.status,404);assert.equal((await missingUpload.json()).message,'Uploaded file not found');
     const protectedRoute=await fetch(`${base}/api/admin/users`);assert.equal(protectedRoute.status,401);
     const invalidContact=await fetch(`${base}/api/contact`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});assert.equal(invalidContact.status,400);
