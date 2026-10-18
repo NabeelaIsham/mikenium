@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { pool } from '../config/db.js';
 import { requireSuperAdmin } from '../middleware/auth.js';
-import {optionalPublicUrl,requiredPublicUrl} from '../utils/safe-url.js';
+import {schema,updateSchema} from '../utils/blog-schema.js';
 import {validateImageUpload} from '../utils/image-upload.js';
 
 const router=Router();
@@ -15,39 +15,6 @@ router.param('id',(req,res,next,id)=>z.string().uuid().safeParse(id).success?nex
 const imageTypes={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'};
 const uploadsPath=fileURLToPath(new URL('../uploads/blogs/',import.meta.url));
 const slugify=value=>value.toLowerCase().trim().replace(/^\/+|\/+$/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,210);
-const url=optionalPublicUrl();
-const text=z.string().trim().max(10000).default('');
-const blockSchema=z.discriminatedUnion('type',[
-  z.object({id:z.string().max(80),type:z.literal('heading'),eyebrow:z.string().max(100).default(''),title:z.string().min(2).max(240)}),
-  z.object({id:z.string().max(80),type:z.literal('paragraph'),text:z.string().min(1).max(12000),lead:z.boolean().default(false)}),
-  z.object({id:z.string().max(80),type:z.literal('quote'),text:z.string().min(1).max(2000),cite:z.string().max(240).default('')}),
-  z.object({id:z.string().max(80),type:z.literal('list'),title:z.string().max(200).default(''),items:z.array(z.string().min(1).max(1000)).min(1).max(20)}),
-  z.object({id:z.string().max(80),type:z.literal('image'),url:url,alt:z.string().max(240).default(''),caption:z.string().max(300).default('')}),
-  z.object({id:z.string().max(80),type:z.literal('featureGrid'),title:z.string().max(200).default(''),items:z.array(z.object({title:z.string().min(1).max(140),text:z.string().max(1000)})).min(1).max(8)}),
-  z.object({id:z.string().max(80),type:z.literal('callout'),eyebrow:z.string().max(100).default(''),title:z.string().min(1).max(200),text:z.string().max(1000).default(''),buttonLabel:z.string().max(80).default('Start a project'),buttonUrl:requiredPublicUrl().default('/contact')})
-]);
-const schema=z.object({
-  title:z.string().trim().min(5).max(240),
-  slug:z.preprocess(value=>typeof value==='string'&&value.trim()?slugify(value):'',z.string().max(220).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).or(z.literal(''))).optional(),
-  excerpt:z.string().trim().min(20).max(1000),
-  category:z.string().trim().min(2).max(100),
-  authorName:z.string().trim().min(2).max(140),
-  authorTitle:z.string().trim().max(160).default(''),
-  authorBio:text,
-  authorAvatarUrl:url,
-  coverImageUrl:url,
-  coverCaption:z.string().trim().max(240).default(''),
-  readingMinutes:z.coerce.number().int().min(1).max(120).default(5),
-  tags:z.array(z.string().trim().min(1).max(50)).max(15).default([]),
-  blocks:z.array(blockSchema).min(1).max(60),
-  seoTitle:z.string().trim().max(240).default(''),
-  seoDescription:z.string().trim().max(320).default(''),
-  featured:z.boolean().default(false),
-  status:z.enum(['DRAFT','PUBLISHED','SCHEDULED','ARCHIVED']).default('DRAFT'),
-  scheduledAt:z.union([z.string().datetime(),z.literal(''),z.null()]).optional()
-}).superRefine((data,ctx)=>{if(data.status==='SCHEDULED'&&!data.scheduledAt)ctx.addIssue({code:z.ZodIssueCode.custom,path:['scheduledAt'],message:'Choose a scheduled publishing date'});});
-const baseSchema=schema._def.schema;
-const updateSchema=baseSchema.partial();
 const serialize=row=>({id:row.id,title:row.title,slug:row.slug,excerpt:row.excerpt,category:row.category,authorName:row.author_name,authorTitle:row.author_title,authorBio:row.author_bio,authorAvatarUrl:row.author_avatar_url||'',coverImageUrl:row.cover_image_url||'',coverCaption:row.cover_caption,readingMinutes:Number(row.reading_minutes),tags:row.tags||[],blocks:row.content_blocks||[],seoTitle:row.seo_title,seoDescription:row.seo_description,featured:row.is_featured,status:row.status,scheduledAt:row.scheduled_at,publishedAt:row.published_at,views:Number(row.views),createdAt:row.created_at,updatedAt:row.updated_at});
 const audit=(userId,action,ip,metadata)=>pool.query('INSERT INTO admin_audit_logs(user_id,action,ip_address,metadata) VALUES($1,$2,$3,$4)',[userId,action,ip,JSON.stringify(metadata)]);
 function validationError(error){
