@@ -4,6 +4,15 @@ import {isSafePublicUrl,publicUrlOr} from '../utils/safe-url.js';
 import {validateImageUpload} from '../utils/image-upload.js';
 import {findTotpCounter,totpAt} from '../services/totp.js';
 import {csvCell} from '../utils/csv.js';
+import {readSessionCookie} from '../utils/session-cookie.js';
+
+test('malformed, oversized and ambiguous session cookies fail closed',()=>{
+  assert.equal(readSessionCookie('other=hello; admin_session=abc.def.ghi','admin_session'),'abc.def.ghi');
+  for(const header of ['admin_session=%','admin_session=%E0%A4%A','admin_session=','admin_session=one; admin_session=two',`admin_session=${'x'.repeat(4097)}`]){
+    assert.equal(readSessionCookie(header,'admin_session'),undefined);
+  }
+  assert.equal(readSessionCookie(undefined,'admin_session'),undefined);
+});
 
 test('public URLs reject active and protocol-relative schemes',()=>{
   assert.equal(isSafePublicUrl('javascript:alert(1)'),false);
@@ -15,6 +24,7 @@ test('public URLs reject active and protocol-relative schemes',()=>{
   assert.equal(isSafePublicUrl('/contact'),true);
   assert.equal(isSafePublicUrl('https://mikenium.com'),true);
   assert.equal(publicUrlOr('javascript:alert(1)','/contact'),'/contact');
+  for(const value of ['/\\attacker.example','/\n/attacker.example','/\t/attacker.example','https://example.com/\\path'])assert.equal(isSafePublicUrl(value),false);
 });
 
 test('image validation checks file signatures rather than MIME alone',()=>{

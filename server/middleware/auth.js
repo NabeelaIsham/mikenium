@@ -1,18 +1,11 @@
 import jwt from 'jsonwebtoken';
 import {env} from '../config/env.js';
 import {pool} from '../config/db.js';
-
-function getCookie(req,name){
-  const cookies=(req.headers.cookie||'').split(';');
-  for(const cookie of cookies){
-    const [key,...value]=cookie.trim().split('=');
-    if(key===name) return decodeURIComponent(value.join('='));
-  }
-}
+import {readSessionCookie} from '../utils/session-cookie.js';
 
 export async function requireSuperAdmin(req,res,next){
   const cookieName=env.isProduction?'__Host-admin_session':'admin_session';
-  const token=getCookie(req,cookieName);
+  const token=readSessionCookie(req.headers.cookie,cookieName);
   if(!token) return res.status(401).json({message:'Company admin session required'});
   try {
     const user=jwt.verify(token,env.jwtSecret,{algorithms:['HS256'],issuer:'mikenium',audience:'mikenium-admin'});

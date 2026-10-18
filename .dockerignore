@@ -6,6 +6,10 @@ client/node_modules
 client/dist
 server/node_modules
 server/.env
+**/.env
+**/.env.*
+.env
+.env.*
 .env.production
 server/uploads/*
 server/backups/*

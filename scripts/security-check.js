@@ -7,6 +7,9 @@ try{
   for(const pathname of ['/','/services','/admin']){
     const response=await get(`${origin}${pathname}`);
     if(!response.ok)failures.push(`${pathname}: HTTP ${response.status}`);
+    if(response.headers.get('x-content-type-options')!=='nosniff')failures.push(`${pathname}: MIME sniffing protection is missing`);
+    if(!['DENY','SAMEORIGIN'].includes(response.headers.get('x-frame-options')?.toUpperCase()))failures.push(`${pathname}: frame protection is missing`);
+    if(new URL(origin).protocol==='https:'&&!/max-age=\d+/.test(response.headers.get('strict-transport-security')||''))failures.push(`${pathname}: HTTPS transport policy is missing`);
     const policy=new Map((response.headers.get('content-security-policy')||'').split(';').filter(Boolean).map(value=>{const [key,...sources]=value.trim().split(/\s+/);return [key,sources]}));
     for(const key of ['default-src','script-src','style-src','font-src','img-src']){
       const sources=policy.get(key);
@@ -35,6 +38,12 @@ try{
   }
   const head=await fetch(origin,{method:'HEAD',signal:AbortSignal.timeout(20000)});
   if(!head.ok)failures.push(`Homepage HEAD request: HTTP ${head.status}`);
+  for(const route of ['users','blogs','settings','system-backups']){
+    const response=await get(`${origin}/api/admin/${route}`);
+    if(![401,403].includes(response.status))failures.push(`Anonymous /api/admin/${route}: expected 401/403, received ${response.status}`);
+    if(!/no-store/.test(response.headers.get('cache-control')||''))failures.push(`/api/admin/${route}: no-store policy missing`);
+    await response.arrayBuffer();
+  }
 }catch(error){failures.push(error.message)}
 if(failures.length){console.error(`Website security checks failed:\n- ${failures.join('\n- ')}`);process.exitCode=1}
-else console.log('Website CSP, local font dependencies, SHA-384 entrypoint integrity, and HEAD response checks passed. Host SSH/TCP settings require separate verification.');
+else console.log('Website CSP, security headers, local fonts, SHA-384 entrypoint integrity, HEAD response, and anonymous admin access checks passed. Host SSH/TCP settings require separate verification.');

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { pool } from '../config/db.js';
 import {publicUrlOr} from '../utils/safe-url.js';
 const router=Router();
-const sanitizeBlock=block=>block?.type==='image'?{...block,url:publicUrlOr(block.url)}:block?.type==='callout'?{...block,buttonUrl:publicUrlOr(block.buttonUrl,'/contact')} :block;
+const sanitizeBlock=block=>block?.type==='image'?{...block,url:publicUrlOr(block.url)}:block?.type==='callout'?{...block,buttonUrl:publicUrlOr(block.buttonUrl,'/contact')}:block?.type==='gallery'?{...block,items:(block.items||[]).map(item=>({...item,url:publicUrlOr(item.url)}))}:block;
 const serialize=row=>({id:row.id,title:row.title,slug:row.slug,excerpt:row.excerpt,category:row.category,authorName:row.author_name,authorTitle:row.author_title,authorBio:row.author_bio,authorAvatarUrl:publicUrlOr(row.author_avatar_url),coverImageUrl:publicUrlOr(row.cover_image_url),coverCaption:row.cover_caption,readingMinutes:Number(row.reading_minutes),tags:row.tags||[],blocks:(row.content_blocks||[]).map(sanitizeBlock),seoTitle:row.seo_title,seoDescription:row.seo_description,featured:row.is_featured,publishedAt:row.published_at||row.scheduled_at,views:Number(row.views)});
 const publicCondition=`(status='PUBLISHED' OR (status='SCHEDULED' AND scheduled_at<=now()))`;
 router.get('/',async(req,res)=>{const {rows}=await pool.query(`SELECT * FROM blog_posts WHERE ${publicCondition} ORDER BY is_featured DESC,COALESCE(published_at,scheduled_at,created_at) DESC`);res.set('Cache-Control','no-store').json({blogs:rows.map(serialize)});});

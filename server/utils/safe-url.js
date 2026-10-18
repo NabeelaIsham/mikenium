@@ -4,6 +4,9 @@ export function isSafePublicUrl(value,{allowLocal=true}={}){
   if(typeof value!=='string')return false;
   const input=value.trim();
   if(!input)return true;
+  // Browsers normalize backslashes and strip control characters in URLs.
+  // Reject them before accepting a local path such as /\\attacker.example.
+  if(/[\\\u0000-\u001f\u007f]/.test(input))return false;
   if(allowLocal&&input.startsWith('/')&&!input.startsWith('//'))return true;
   try{
     const url=new URL(input);if(url.username||url.password)return false;
